@@ -23,7 +23,7 @@ def visualization_pretrain():
     mask = mask_example
 
     """pre_training on foreground/background"""
-    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Embedding UNet/Code/saved_models/pretraining/pretrain_epoch-20.pt')
+    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/pretraining/pretrain_epoch-20.pt')
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0)
@@ -79,7 +79,7 @@ def visualization_train():
     mask = mask_example
 
     """training on multiple instances"""
-    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Embedding UNet/Code/saved_models/time_evolution_2/epoch-59.pt')
+    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/time_evolution/epoch-29.pt')
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0)
@@ -109,8 +109,8 @@ def visualization_train():
     # Plot selected dimensions
 
     # fig = px.scatter_(df, x = 'dim1', y = 'dim5', color = 'label', marginal_x="rug", marginal_y="rug", title='background free')
-    # fig = px.scatter_3d(df_bg_free, x = 'dim3', y = 'dim10', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
-    fig = px.scatter_3d(df, x='dim3', y='dim10', z='dim6', color='label', symbol='label')
+    fig = px.scatter_3d(df_bg_free, x = 'dim3', y = 'dim10', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
+    #fig = px.scatter_3d(df, x='dim3', y='dim10', z='dim6', color='label', symbol='label')
     # fig.show()
 
     fig.show()
@@ -162,6 +162,7 @@ def visualization_train():
 
 
 if __name__ == '__main__':
-    visualization_pretrain()
+    #visualization_pretrain()
+    visualization_train()
 
 

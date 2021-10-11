@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth
+from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
 
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
@@ -44,14 +44,20 @@ def cluster_ms(emb, bandwidth, semantic_mask=None):
     return cluster(emb, clustering, semantic_mask)
 
 
+def cluster_agglo(emb, semantic_mask = None):
+    clustering = AgglomerativeClustering()
+    return cluster(emb, clustering, semantic_mask)
+
+
 def get_bandwidth(emb):
     flattened_embeddings = emb.reshape(emb.shape[0], -1).transpose()
     bandwidth = estimate_bandwidth(flattened_embeddings)
     return bandwidth
 
 
+
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 150, 150
+    HEIGHT, WIDTH = 64, 64
 
     directory = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/'
 
@@ -65,23 +71,24 @@ if __name__ == '__main__':
                                   image_transform=image_train_transform(HEIGHT, WIDTH),
                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    # img_example, mask_example = Plants.__getitem__(5)
-    img_example, mask_example = Plants2.__getitem__(7)
+    img_example, mask_example = Plants.__getitem__(5)
+    #img_example, mask_example = Plants2.__getitem__(7)
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
-    # loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Embedding UNet/Code/saved_models/time_evolution/epoch-29.pt')
-    loaded_model = torch.load(
-        '/Users/luisa/Documents/BA_Thesis/Embedding UNet/Code/saved_models/pretraining/pretrain_epoch-2.pt')
+    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/time_evolution/epoch-29.pt')
+    #loaded_model = torch.load(
+     #   '/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/pretraining/pretrain_epoch-2.pt')
 
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0).detach().numpy()
 
-    bng = get_bandwidth(embedding)
+    bng = get_bandwidth(embedding)/2
 
     print('beginning clustering')
-    result = cluster_ms(embedding, bandwidth=bng)
+    #result = cluster_ms(embedding, bandwidth=bng)
+    result = cluster_agglo(embedding)
     # result = cluster_dbscan(embedding, 0.5, 1)
     print('estimates bandwidth:', bng)
     print('okay')
