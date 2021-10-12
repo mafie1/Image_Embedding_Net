@@ -57,7 +57,7 @@ def get_bandwidth(emb):
 
 
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 64, 64
+    HEIGHT, WIDTH = 180, 180
 
     directory = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/'
 
@@ -84,13 +84,13 @@ if __name__ == '__main__':
 
     embedding = loaded_model(image).squeeze(0).detach().numpy()
 
-    bng = get_bandwidth(embedding)/2
+    #bng = get_bandwidth(embedding)/2
 
     print('beginning clustering')
     #result = cluster_ms(embedding, bandwidth=bng)
     result = cluster_agglo(embedding)
     # result = cluster_dbscan(embedding, 0.5, 1)
-    print('estimates bandwidth:', bng)
+    #print('estimates bandwidth:', bng)
     print('okay')
 
     plt.subplot(1, 3, 1)
