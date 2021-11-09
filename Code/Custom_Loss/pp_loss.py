@@ -10,8 +10,12 @@ from model_from_spoco import UNet_spoco
 
 
 
-
-def push_pull_loss(batch_embedding, batch_target, alpha=1, beta=1, gamma=0.000, delta_var = 0.5, delta_d = 1.5):
+def push_pull_loss(batch_embedding, batch_target, alpha=1, beta=1, gamma=0.001, delta_var = 0.5, delta_d = 2.5):
+    """
+    The push_pull loss applies to an entire training batch.
+    Inputs:
+        batch_embedding: shape is [batchsize, ]
+    """
     n_batches = batch_embedding.shape[0]
 
     loss = 0
@@ -39,10 +43,10 @@ def push_pull_loss(batch_embedding, batch_target, alpha=1, beta=1, gamma=0.000, 
         regularization_term = compute_regularizer_term(single_input, single_target)
         distance_term = compute_distance_term(single_input, single_target, delta_d=delta_d)
 
-        print('')
-        print('Variance Term: ', alpha * variance_term)
-        print('Distance_term: ', beta * distance_term)
-        print('Regularization Term:', gamma*regularization_term)
+        #print('')
+        #print('Variance Term: ', alpha * variance_term)
+        #print('Distance_term: ', beta * distance_term)
+        #print('Regularization Term:', gamma*regularization_term)
 
         loss = alpha * variance_term + beta * distance_term + gamma * regularization_term
 
@@ -50,9 +54,13 @@ def push_pull_loss(batch_embedding, batch_target, alpha=1, beta=1, gamma=0.000, 
 
 
 class DiscriminativeLoss(nn.Module):
-    def __init__(self, delta_var = 0.5, delta_d = 1.5):
+    def __init__(self, delta_var = 0.5, delta_d = 2.5, alpha = 1.0, beta = 1.0, gamma = 0.001):
+
         super(DiscriminativeLoss, self).__init__()
 
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
         self.delta_var = delta_var
         self.delta_d = delta_d
 
@@ -94,7 +102,7 @@ def test2():
     from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
     import matplotlib.pyplot as plt
 
-    directory = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/'
+    directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
     HEIGHT, WIDTH = 50, 50
 

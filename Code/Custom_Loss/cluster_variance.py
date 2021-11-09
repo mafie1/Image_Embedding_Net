@@ -4,22 +4,9 @@ import matplotlib.pyplot as plt
 
 from Custom_Loss.cluster_means import compute_cluster_means
 
-torch.manual_seed(3)
-random_prediction = torch.rand(2, 3, 3) * 255  # only 2 embedding dimensions [2, Height, Width]
-random_mask_tensor = torch.randint(low=0, high=2, size=(1, 3, 3))
-
-instance_ids, instance_counts = torch.unique(random_mask_tensor,
-                                             return_counts=True)  # instance_ids = tensor([0,1]), instance_counts = 2
-C = instance_ids.size(0)  # number of instances, or alternatively instance_counts
-print(instance_counts)  # 6 pixels belong to instance 0 and 3 to instance 2
-random_mask_tensor = random_mask_tensor.squeeze()  # --> [Height, Width]
-
-random_means = compute_cluster_means(random_prediction, random_mask_tensor, n_instances=C)
-
-
 # here begins the actual variances part
 
-def compute_cluster_variances(cluster_means, embedding, target, instance_counts, delta_var = 0.5, ignore_zero_label = True):
+def compute_cluster_variances(cluster_means, embedding, target, instance_counts, delta_var = 0.5, ignore_zero_label = False):
     """
     :param cluster_means: output of the function compute_cluster_means
     :param embedding: prediction from neural network [16, H, W]
@@ -39,14 +26,6 @@ def compute_cluster_variances(cluster_means, embedding, target, instance_counts,
     #dist_to_mean = torch.norm(embedding - cluster_means_spatial, p='fro', dim=0)
     dist_to_mean = torch.linalg.norm(embedding - cluster_means_spatial, dim = 0)
 
-    if ignore_zero_label:
-        dist_mask = torch.ones_like(dist_to_mean)
-        dist_mask[target == 0] = 0
-        dist_to_mean = dist_to_mean * dist_mask
-
-        C -= 1
-        if C == 0:
-            return 0
 
     hinge_dist = torch.clamp(dist_to_mean - delta_var,
                              min=0)  # eliminate all distances less than delta_var (=within the cluster)

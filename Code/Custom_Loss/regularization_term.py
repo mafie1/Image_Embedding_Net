@@ -4,19 +4,22 @@ import torch
 
 def compute_regularizer_term(embedding, target):
     """
-    Computes the regularizer term, i.e. a small pull-force that draws all clusters towards origin to keep
-    the network activations bounded
+    This function computes the regularizaiton term.
+    This term prevents the clusters to drift off. With the regularization term,
+    clusters are forced to stay close to the origin.
     """
 
-    instance_ids, instance_counts = torch.unique(target, return_counts=True)
-    C = instance_ids.size(0)
+    instance_idx, _ = torch.unique(target, return_counts=True)
+    C = instance_idx.size(0)
+
+    # computes the mean embedding of each instance cluster
     cluster_means = compute_cluster_means(embedding, target.squeeze(), n_instances=C)
 
-    # compute the norm of the mean embeddings
-    #norms = torch.norm(cluster_means, dim=1)
-    norms = torch.linalg.norm(cluster_means, dim=0)
-    # return the average norm per batch
-    return torch.sum(norms) / cluster_means.size(0)
+    # computes the norm of the mean embeddings
+    norms = torch.linalg.norm(cluster_means, dim=1)
+
+    # computes the average norm, that is the norm for each instance divided by the total number of instances
+    return torch.sum(norms)/ cluster_means.size(0)
 
 
 def test():
@@ -24,7 +27,7 @@ def test():
     WIDTH = 50
     torch.manual_seed(3)
     random_prediction = torch.rand(2, HEIGHT, WIDTH) * 255
-    random_mask_tensor = torch.randint(low=0, high=4, size=(1, HEIGHT, WIDTH))
+    random_mask_tensor = torch.randint(low=0, high=5, size=(1, HEIGHT, WIDTH))
 
     return compute_regularizer_term(random_prediction, random_mask_tensor)
 

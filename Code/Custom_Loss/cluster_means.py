@@ -2,7 +2,6 @@ from utils import scatter_mean
 import torch
 import numpy as np
 
-
 def compute_cluster_means(embeddings, target, n_instances):
     """
     Computes mean embeddings per instance.

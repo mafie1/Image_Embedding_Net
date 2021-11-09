@@ -2,7 +2,7 @@ from Custom_Loss.cluster_means import compute_cluster_means
 import torch
 
 
-def compute_distance_term(embedding, target, delta_d = 1.5, ignore_zero_label = False):
+def compute_distance_term(embedding, target, delta_d = 2.5, ignore_zero_label = False):
     """
     :param embedding:
     :param target:
@@ -10,8 +10,8 @@ def compute_distance_term(embedding, target, delta_d = 1.5, ignore_zero_label = 
     :param delta_d: distance parameter, 1.5-2.0
     :return
     """
-    instance_ids, instance_counts = torch.unique(target, return_counts=True)
-    C = instance_ids.size(0)
+    instance_idx, instance_counts = torch.unique(target, return_counts=True)
+    C = instance_idx.size(0)
     cluster_means = compute_cluster_means(embedding, target.squeeze(), n_instances=C)
 
     #if C <= 1:
