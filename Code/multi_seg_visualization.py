@@ -5,9 +5,8 @@ import numpy as np
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
 
-HEIGHT, WIDTH = 128, 128
-
-directory = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/'
+HEIGHT, WIDTH = 256, 256
+directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
 Plants = CustomDatasetMultiple(dir = directory,
                                transform= None,
@@ -27,7 +26,7 @@ mask = mask_example
 #plt.imshow(mask_example.permute(1, 2, 0))
 #plt.show()
 
-loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Embedding UNet/Code/saved_models/time_evolution/epoch-29.pt')
+loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/long_runs/epoch-100.pt')
 loaded_model.eval()
 
 

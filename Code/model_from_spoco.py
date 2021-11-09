@@ -134,7 +134,7 @@ def test():
 
     model = UNet_spoco(in_channels = 3, out_channels = 16)
     preds = model(x)
-    print(preds.shape)
+    #print(preds.shape)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,16 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import os
+import hdbscan
+from torchmetrics import IoU
 
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
 
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
-from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
-from Preprocessing.dataset_plants_binary import CustomDatasetBinary
-
+from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
+#from Code.Preprocessing.dataset_plants_binary import CustomDatasetBinary
+from Code.model_from_spoco import UNet_spoco
 
 def cluster(emb, clustering_alg, semantic_mask=None):
     output_shape = emb.shape[1:]
@@ -48,6 +51,9 @@ def cluster_agglo(emb, semantic_mask = None):
     clustering = AgglomerativeClustering()
     return cluster(emb, clustering, semantic_mask)
 
+def cluster_hdbscan(emb, min_size, eps, min_samples=None, semantic_mask=None):
+    clustering = hdbscan.HDBSCAN(min_cluster_size=min_size, cluster_selection_epsilon=eps, min_samples=min_samples)
+    return cluster(emb, clustering, semantic_mask)
 
 def get_bandwidth(emb):
     flattened_embeddings = emb.reshape(emb.shape[0], -1).transpose()
@@ -55,43 +61,51 @@ def get_bandwidth(emb):
     return bandwidth
 
 
-
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 180, 180
+    HEIGHT, WIDTH = 350, 350
 
-    directory = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/'
+    rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = os.path.expanduser(rel_path)
 
     Plants = CustomDatasetMultiple(dir=directory,
                                    transform=None,
                                    image_transform=image_train_transform(HEIGHT, WIDTH),
                                    mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    Plants2 = CustomDatasetBinary(dir=directory,
-                                  transform=None,
-                                  image_transform=image_train_transform(HEIGHT, WIDTH),
-                                  mask_transform=mask_train_transform(HEIGHT, WIDTH))
+    #Plants2 = CustomDatasetBinary(dir=directory,
+     #                             transform=None,
+      #                            image_transform=image_train_transform(HEIGHT, WIDTH),
+       #                           mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
     img_example, mask_example = Plants.__getitem__(5)
-    #img_example, mask_example = Plants2.__getitem__(7)
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
-    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/time_evolution/epoch-29.pt')
-    #loaded_model = torch.load(
-     #   '/Users/luisa/Documents/BA_Thesis/Image Embedding Net/Code/saved_models/pretraining/pretrain_epoch-2.pt')
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-200.pt'
+    model_path = os.path.expanduser(rel_model_path)
+
+    loaded_model = torch.load(model_path)
 
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0).detach().numpy()
+    print('Forward Pass Done')
 
-    #bng = get_bandwidth(embedding)/2
+    #bng = get_bandwidth(embedding)
+    #print('Bandwidth Estimation Done')
+    #print(bng)
 
-    print('beginning clustering')
-    #result = cluster_ms(embedding, bandwidth=bng)
-    result = cluster_agglo(embedding)
-    # result = cluster_dbscan(embedding, 0.5, 1)
+    print('Beginning Clustering')
+    #result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
+
+
+    #result = cluster_agglo(embedding)
+    #result = cluster_dbscan(embedding, 50, 10)
+    result = cluster_hdbscan(embedding, 140, 0.3)
+    print(np.unique(result))
+    print(np.unique(mask_example))
     #print('estimates bandwidth:', bng)
-    print('okay')
+    print('Clustering Done')
 
     plt.subplot(1, 3, 1)
     plt.title('Image')
@@ -99,11 +113,15 @@ if __name__ == '__main__':
 
     plt.subplot(1, 3, 2)
     plt.title('Mask')
-    plt.imshow(mask_example.permute(1, 2, 0))
+    plt.imshow(mask_example.permute(1, 2, 0), cmap = 'Spectral')
 
     plt.subplot(1, 3, 3)
     plt.title('Predicted Mask')
-    plt.imshow(result)
+    plt.imshow(result, cmap = 'Spectral')
 
-    plt.imshow(result)
     plt.show()
+    plt.savefig('Segmentation.png')
+
+    mask_example = np.array(mask_example.detach().numpy(), np.int)
+
+

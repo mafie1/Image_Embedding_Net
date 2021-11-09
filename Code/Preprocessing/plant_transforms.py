@@ -1,10 +1,10 @@
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+#import albumentations as A
+#from albumentations.pytorch import ToTensorV2
 import torch
 import torchvision.transforms as T
 from PIL import Image
 
-
+"""
 def train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
     transform = A.Compose([
         #A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
@@ -18,8 +18,14 @@ def train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
            # max_pixel_value = 255.0, ),
         ToTensorV2(),
         ])
-    return transform
+    return transform """
 
+def train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
+    transform = T.Compose([
+        #T.RandomCrop(),
+        T.RandomHorizontalFlip()
+    ])
+    return transform
 
 def mask_train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
     transform = T.Compose(
