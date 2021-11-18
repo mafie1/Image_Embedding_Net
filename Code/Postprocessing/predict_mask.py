@@ -62,7 +62,7 @@ def get_bandwidth(emb):
 
 
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 350, 350
+    HEIGHT, WIDTH = 400, 400
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -77,11 +77,11 @@ if __name__ == '__main__':
       #                            image_transform=image_train_transform(HEIGHT, WIDTH),
        #                           mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    img_example, mask_example = Plants.__getitem__(5)
+    img_example, mask_example = Plants.__getitem__(2)
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-200.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt.nosync'
     model_path = os.path.expanduser(rel_model_path)
 
     loaded_model = torch.load(model_path)
@@ -97,30 +97,40 @@ if __name__ == '__main__':
 
     print('Beginning Clustering')
     #result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
-
+    n_min = 140
+    epsilon = 0.5
 
     #result = cluster_agglo(embedding)
-    #result = cluster_dbscan(embedding, 50, 10)
-    result = cluster_hdbscan(embedding, 140, 0.3)
-    print(np.unique(result))
-    print(np.unique(mask_example))
+    #result = cluster_dbscan(embedding, 150, 0.5)
+    result = cluster_hdbscan(embedding, n_min, epsilon)
+    print('Number of Instances Detected:', np.unique(result))
+    print('Number of Instances in Ground Truth:', np.unique(mask_example))
     #print('estimates bandwidth:', bng)
     print('Clustering Done')
 
+    fig = plt.figure(figsize=(16,12))
+    plt.title(r'HDBSCAN with $n_m = {}$ and $\epsilon = {}$'.format(n_min, epsilon))
     plt.subplot(1, 3, 1)
-    plt.title('Image')
+    plt.title('Image', size = 'large')
+    plt.xticks([])
+    plt.yticks([])
     plt.imshow(np.array(img_example.permute(1, 2, 0)))
 
     plt.subplot(1, 3, 2)
-    plt.title('Mask')
-    plt.imshow(mask_example.permute(1, 2, 0), cmap = 'Spectral')
+    plt.xticks([])
+    plt.yticks([])
+    plt.title('Mask', size = 'large')
+    plt.imshow(mask_example.permute(1, 2, 0), cmap = 'Spectral', interpolation = 'nearest')
 
     plt.subplot(1, 3, 3)
-    plt.title('Predicted Mask')
-    plt.imshow(result, cmap = 'Spectral')
+    plt.title('Predicted Mask', size = 'large')
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(result , cmap = 'Spectral', interpolation = 'nearest')
 
-    plt.show()
-    plt.savefig('Segmentation.png')
+    fig.savefig('Segmentation.png', dpi = 200)
+
+    #plt.show()
 
     mask_example = np.array(mask_example.detach().numpy(), np.int)
 

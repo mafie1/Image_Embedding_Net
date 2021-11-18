@@ -32,11 +32,10 @@ def extended_transform():
     transform = T.Compose(
         [T.RandomHorizontalFlip(),
          T.RandomVerticalFlip(),
+         T.RandomCrop(),
          T.ToTensor,
         ]
     )
-
-
 
 class CustomDatasetMultiple(Dataset):
     def __init__(self, dir, transform, image_transform, mask_transform):
@@ -85,10 +84,12 @@ class CustomDatasetMultiple(Dataset):
         if self.transform is not None:
             random.seed(seed)
             torch.manual_seed(seed)
+            image = self.transform(image)
 
-            augmentations = self.transform(image=image, mask=mask)
-            image = augmentations['image']
-            mask = augmentations['mask']
+            random.seed(seed)
+            torch.manual_seed(seed)
+
+            mask = self.transform(mask)
 
         if self.image_transform is not None:
             random.seed(seed)

@@ -43,11 +43,13 @@ def get_bg_fg_ratio():
 
 
 df = pd.DataFrame(data = get_bg_fg_ratio(), columns=['ratio'])
+print('Average Ratio:', df.mean())
 
 df['number of leaves'] = get_instance_count()
 print(df.head(5))
 
-fig = px.histogram(df, x = "ratio",
+
+"""fig = px.histogram(df, x = "ratio",
                    nbins = 100,
                    range_x = [0, 1],
                    #title = 'Histogram of the Foreground-Background Ratios',
@@ -60,11 +62,11 @@ fig_2 = px.histogram(df, x = 'number of leaves',
                      histnorm='percent',
                      range_x = [11, 21],
                      template = 'seaborn')
-
+"""
 #fig.show()
 #fig_2.show()
 
-fig.write_image("images_statistics/ratio_histogram.png")
+#fig.write_image("images_statistics/ratio_histogram.png")
 #fig_2.write_image('images_statistics/leave_count_histogram.png')
 
 #fig.write_image('sample.png')

@@ -4,7 +4,7 @@ import torch
 
 def compute_regularizer_term(embedding, target):
     """
-    This function computes the regularizaiton term.
+    This function computes the regularization term.
     This term prevents the clusters to drift off. With the regularization term,
     clusters are forced to stay close to the origin.
     """
@@ -29,9 +29,9 @@ def test():
     random_prediction = torch.rand(2, HEIGHT, WIDTH) * 255
     random_mask_tensor = torch.randint(low=0, high=5, size=(1, HEIGHT, WIDTH))
 
-    return compute_regularizer_term(random_prediction, random_mask_tensor)
+    print(compute_regularizer_term(random_prediction, random_mask_tensor))
 
 
 if __name__ == '__main__':
-    print(test())
+    test()
 

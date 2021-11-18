@@ -64,8 +64,8 @@ class DiscriminativeLoss(nn.Module):
         self.delta_var = delta_var
         self.delta_d = delta_d
 
-    def forward(self, batch_embedding, batch_target, alpha=1, beta=1, gamma=0.001):
-        loss = push_pull_loss(batch_embedding, batch_target, alpha, beta, gamma, delta_var=self.delta_var, delta_d=self.delta_d)
+    def forward(self, batch_embedding, batch_target):
+        loss = push_pull_loss(batch_embedding, batch_target, self.alpha, self.beta, self.gamma, delta_var=self.delta_var, delta_d=self.delta_d)
         return loss
 
 
@@ -89,7 +89,7 @@ def test():
     batch_prediction = torch.stack((random_prediction_1, random_prediction_2))
     batch_mask = torch.stack((random_mask_tensor_1, random_mask_tensor_2))
 
-    loss_function = DiscriminativeLoss()
+    loss_function = DiscriminativeLoss(delta_var=2.0, delta_d=5.0)
 
     print(batch_prediction.shape)
     print(batch_mask.shape)
