@@ -4,22 +4,25 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import os
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 
 from model_from_spoco import UNet_spoco
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Custom_Loss.pp_loss import DiscriminativeLoss
+from alternative_unet import UNet2
 
 
 def trainer():
-    torch.manual_seed(3)
+    torch.manual_seed(0)
+    random.seed(0)
 
     LEARNING_RATE = 0.001 #1e-3 empfohlen
     #lambda_1 = lambda epoch: 0.5
 
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-    EPOCHS = 200
-    HEIGHT =  256
+    EPOCHS = 1
+    HEIGHT =  50
     WIDTH = HEIGHT
     IN_CHANNELS = 3  # RGB
     OUT_CHANNELS = 16 #output dimensions of embedding space
@@ -43,23 +46,21 @@ def trainer():
 
     train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    dataloader = DataLoader(train_set, batch_size=8, shuffle=True)
-    validation_loader = DataLoader(val_set, batch_size=8, shuffle = False)
+    dataloader = DataLoader(train_set, batch_size=16, shuffle=True)
+    validation_loader = DataLoader(val_set, batch_size=16, shuffle = False)
 
 
-    rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution'
+    rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/new_unet_architecture'
 
     model_dir = os.path.expanduser(rel_model_dir)
     print('Model Directory is set to:', model_dir)
 
-    model = UNet_spoco(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
+    #model = UNet_spoco(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
+    
+    model = UNet2(IN_CHANNELS,OUT_CHANNELS)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    #scheduler = StepLR(optimizer, step_size=1, gamma=0.5)
-    #scheduler = lr_scheduler.MultiplicativeLR(optimizer, lambda_1)
-
-    loss_function = DiscriminativeLoss(delta_var=DELTA_VAR, delta_d=DELTA_D)
-    #writer = SummaryWriter('runs/multi_runs')
+    loss_function = DiscriminativeLoss(delta_var=DELTA_VAR, delta_d=DELTA_D) # + Affinity Loss
 
     loss_statistic = np.array([])
     validation_loss_statistic = np.array([])
@@ -104,11 +105,9 @@ def trainer():
                 validation_loss = loss_function(predictions, targets)
                 running_validation_loss += validation_loss
 
+        model.eval()
         validation_loss_statistic = np.append(validation_loss_statistic, running_validation_loss)
 
-        #Tensorboard
-        #writer.add_scalar('Loss/training_loss of batch', running_loss, i)
-        #writer.flush()
 
         #Save Model after each Epoch?
         #torch.save(model, os.path.join(model_dir, 'epoch-{}.pt'.format(i)))

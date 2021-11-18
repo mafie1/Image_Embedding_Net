@@ -11,7 +11,7 @@ EPOCHS = 20
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 LEARNING_RATE = 0.001
 
-HEIGHT, WIDTH = 128, 128
+HEIGHT, WIDTH = 500, 500
 
 
 #OPTIMIZER = optim.Adam()

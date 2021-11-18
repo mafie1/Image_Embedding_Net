@@ -64,31 +64,42 @@ class UNet_spoco(nn.Module):
 
         #print('Encoder:')
         x1 = self.down_1(image)
+        print('Down 1:', x1.shape)
         #print('Step 1: '+ str(x1.shape))
         x2 = self.max_pool_2d(x1)
+        print('Max-Pool 1:', x2.shape)
         #print('Step 2: '+ str(x2.shape))
 
         x3 = self.down_2(x2)
+        print('Down 2:', x3.shape)
         #print('Step 3: ' + str(x3.shape))
         x4 = self.max_pool_2d(x3)
+        print('Max-Pool 2:', x4.shape)
         #print('Step 4: ' + str(x4.shape))
 
         x5 = self.down_3(x4)
+        print('Down 3:', x5.shape)
         #print('Step 5: ' + str(x5.shape))
         x6 = self.max_pool_2d(x5)
+        print('Max-Pool 3:', x6.shape)
         #print('Step 6: ' + str(x6.shape))
 
         x7 = self.down_4(x6)
+        print('Down 4:', x7.shape)
         #print('Step 7: ' + str(x7.shape))
         x8 = self.max_pool_2d(x7)
+        print('Max-Pool 4:', x8.shape)
         #print('Step 8: ' + str(x8.shape))
 
         x9 = self.down_5(x8)
+        print('Down 5:', x9.shape)
         #print('Step 9: ' + str(x9.shape))
         x10 = self.max_pool_2d(x9)
+        print('Max-Pool 5:', x10.shape)
         #print('Step 10: ' + str(x10.shape))
 
         x11 = self.down_6(x10)
+        print('Down 6', x11.shape)
         #print('Step 11:' + str(x11.shape)+ '\n')
 
         #decoder part
@@ -130,9 +141,9 @@ class UNet_spoco(nn.Module):
 
 
 def test():
-    x = torch.randn((1, 3, 50, 50))
+    x = torch.randn((1, 4, 400, 400))
 
-    model = UNet_spoco(in_channels = 3, out_channels = 16)
+    model = UNet_spoco(in_channels = 4, out_channels = 16)
     preds = model(x)
     #print(preds.shape)
 

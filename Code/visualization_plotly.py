@@ -8,7 +8,7 @@ from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
 from Preprocessing.dataset_plants_binary import CustomDatasetBinary
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
 
-HEIGHT, WIDTH = 128, 128
+HEIGHT, WIDTH = 400, 400
 
 directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
@@ -25,7 +25,7 @@ def visualization_train():
     mask = mask_example
 
     """training on multiple instances"""
-    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/long_runs/epoch-100.pt')
+    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt.nosync')
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0)
@@ -48,21 +48,23 @@ def visualization_train():
 
 
     #print(df.sum())
-    #print(df_bg_free.std())
+    print(df_bg_free.std())
     #print(df_zeroed.head(10))
 
     # Plot selected dimensions
 
     #fig = px.scatter(df_bg_free, x = 'dim1', y = 'dim2', color = 'label', marginal_x="rug", marginal_y="rug", title='background free')
-    #fig = px.scatter_3d(df_bg_free, x = 'dim1', y = 'dim2', z = 'dim3', color = 'label', size = 'label', symbol = 'label')
+    fig = px.scatter_3d(df_bg_free, x = 'dim4', y = 'dim7', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
+
     df['label'] = df['label']+1
+
     #fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
                        # title = 'Instance Pixel Embeddings shown in selected dimensions',
                         #width = 1200, height = 800)
 
-    fig = px.scatter(df, x='dim2', y='dim3', color='label', symbol='label', size = 'label',
-                        title = 'Instance Pixel Embeddings shown in selected dimensions',
-                        width = 1200, height = 800)
+    #fig = px.scatter(df, x='dim2', y='dim3', color='label', symbol='label', size = 'label',
+                      #  title = 'Instance Pixel Embeddings shown in selected dimensions',
+                      #  width = 1200, height = 800)
     fig.update_layout(legend_orientation="h")
     #fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
      #                                         ticks="outside"))
@@ -155,7 +157,6 @@ def visualization_train():
 
 
 if __name__ == '__main__':
-    #visualization_pretrain()
     visualization_train()
 
 
