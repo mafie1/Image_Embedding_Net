@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from model_from_spoco import UNet_spoco
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Custom_Loss.pp_loss import DiscriminativeLoss
-from alternative_unet import UNet2
+from model_from_spoco import UNet2
 
 
 def trainer():

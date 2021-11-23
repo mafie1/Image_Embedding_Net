@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import os
-#import hdbscan
+import hdbscan
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
 
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
@@ -44,7 +44,6 @@ def cluster_ms(emb, bandwidth, semantic_mask=None):
     clustering = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     return cluster(emb, clustering, semantic_mask)
 
-
 def cluster_agglo(emb, semantic_mask = None):
     clustering = AgglomerativeClustering()
     return cluster(emb, clustering, semantic_mask)
@@ -60,7 +59,7 @@ def get_bandwidth(emb):
 
 
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 200, 200
+    HEIGHT, WIDTH = 100, 100
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -95,13 +94,14 @@ if __name__ == '__main__':
 
     print('Beginning Clustering')
     #result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
-    n_min = 20
-    epsilon = 0.5
+    n_min = 5
+    epsilon = 0.2
 
     #result = cluster_agglo(embedding)
-    result = cluster_dbscan(embedding, n_min, epsilon)
+
+    #result = cluster_dbscan(embedding, n_min, epsilon)
     print(embedding.shape)
-    #result = cluster_hdbscan(embedding, n_min, epsilon)
+    result = cluster_hdbscan(embedding, n_min, epsilon)
     print('Number of Instances Detected:', np.unique(result))
     print('Number of Instances in Ground Truth:', np.unique(mask_example))
     #print('estimates bandwidth:', bng)
