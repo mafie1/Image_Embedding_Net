@@ -3,8 +3,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from utils import save_embedding
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, mask_train_transform, image_train_transform
-from Postprocessing.utils_post import create_masks_for_instance_N
 
 
 def pca(embedding, output_dimensions=3, reference=None, center_data=False, return_pca_objects=False):
@@ -43,19 +43,18 @@ def pca(embedding, output_dimensions=3, reference=None, center_data=False, retur
     else:
         return transformed, pca_objects
 
-def random_test():
-    print(pca(torch.rand(2, 64, 20, 100, 100)).shape)
+
 
 
 def test():
     loaded_model = torch.load(
-        '/Users/luisa/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt.nosync')
+        '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt')
     loaded_model.eval()
 
-    HEIGHT, WIDTH = 400, 400
-    PCA_dim = 16
+    HEIGHT, WIDTH = 100, 100
+    PCA_dim = 3
 
-    directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = '/Users/luisaneubauer/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
     Plants = CustomDatasetMultiple(dir=directory,
                                    transform=None,
@@ -69,9 +68,14 @@ def test():
     embedding = loaded_model(image)
 
     print(pca(embedding).shape)
-    pca_output = pca(embedding).squeeze(0).view(3,400,400)
-    print(pca_output.shape)
-    plt.imshow(pca_output.permute(1,2,0), cmap = 'Accent')
+
+    pca_output = pca(embedding, output_dimensions=PCA_dim).squeeze(0).view(PCA_dim,HEIGHT,WIDTH)
+
+    flat_embedding = embedding.reshape((16, -1))
+
+    np.savetxt('embedding_{}_{}.csv'.format(PCA_dim, HEIGHT), flat_embedding.detach().numpy(), delimiter=",")
+    print(flat_embedding.shape)
+    plt.imshow(pca_output.squeeze().permute(1,2,0))
     plt.show()
 
 

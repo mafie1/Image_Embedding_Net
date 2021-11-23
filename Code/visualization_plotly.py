@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
 from Preprocessing.dataset_plants_binary import CustomDatasetBinary
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
-from Postprocessing.pca_Roman import pca
+from Postprocessing.dim_reduction import pca
 
 
 
