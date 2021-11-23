@@ -1,3 +1,6 @@
+import os
+import random
+import matplotlib.pyplot as plt
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -7,33 +10,66 @@ from sklearn.preprocessing import StandardScaler
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
 from Preprocessing.dataset_plants_binary import CustomDatasetBinary
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
+from Postprocessing.pca_Roman import pca
 
-HEIGHT, WIDTH = 400, 400
 
-directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
 
 def visualization_train():
+    HEIGHT, WIDTH = 400, 400
+    DIM_PCA = 3
+
+    rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = os.path.expanduser(rel_path)
+
+    torch.manual_seed(0)
+    random.seed(0)
 
     Plants = CustomDatasetMultiple(dir=directory,
                                    transform=None,
                                    image_transform=image_train_transform(HEIGHT, WIDTH),
                                    mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    img_example, mask_example = Plants.__getitem__(1)
+    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
+
+    img_example, mask_example = train_set.__getitem__(1)
     image = img_example.unsqueeze(0)
     mask = mask_example
 
-    """training on multiple instances"""
-    loaded_model = torch.load('/Users/luisa/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt.nosync')
+    """loading trained model"""
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
+    model_path = os.path.expanduser(rel_model_path)
+    loaded_model = torch.load(model_path)
     loaded_model.eval()
 
-    embedding = loaded_model(image).squeeze(0)
+    """Forward pass to get embeddings"""
+    embedding = loaded_model(image)
+
+    reduced_embedding = pca(embedding, output_dimensions=3).detach().numpy().reshape((DIM_PCA, -1))
+
+    print(reduced_embedding.shape)
+
+
+    #pca_output = pca(embedding).squeeze(0).view(3, 400, 400)
+    #plt.imshow(pca_output.permute(1, 2, 0), cmap='Accent')
+    #plt.show()
+
+    embedding = embedding.squeeze(0)
+
     flat_embedding = embedding.detach().numpy().reshape((16, -1))
     flat_mask = mask.reshape(-1)
 
     unique_val = np.unique(flat_mask)
 
+    """Create DataFrame of reduced embedding (via PCA)"""
+    pca_df = pd.DataFrame()
+    pca_df['label'] = flat_mask[:]
+
+    for i in range(0, DIM_PCA):
+        pca_df['dim{}'.format(i+1)] = reduced_embedding[i][:]
+
+
+    """Create DataFrame of fully dimensional embeddings"""
     df = pd.DataFrame()
     df["label"] = flat_mask[:]
 
@@ -53,6 +89,7 @@ def visualization_train():
 
     # Plot selected dimensions
 
+    fig_pca = px.scatter_3d(pca_df, x='dim1', y = 'dim2', z = 'dim3', color = 'label', symbol = 'label', size = 'label')
     #fig = px.scatter(df_bg_free, x = 'dim1', y = 'dim2', color = 'label', marginal_x="rug", marginal_y="rug", title='background free')
     fig = px.scatter_3d(df_bg_free, x = 'dim4', y = 'dim7', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
 
@@ -68,8 +105,8 @@ def visualization_train():
     fig.update_layout(legend_orientation="h")
     #fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
      #                                         ticks="outside"))
-    fig.show()
-
+    #fig.show()
+    fig_pca.show()
     #filtered_embedding = df_bg_free.drop('label', axis=1).to_numpy().reshape(-1, 16)
 
     #Preparing Data for PCA

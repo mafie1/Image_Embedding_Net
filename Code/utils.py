@@ -1,5 +1,6 @@
 import torch
 from typing import Optional
+import numpy as np
 
 
 def broadcast(src: torch.Tensor, other: torch.Tensor, dim: int):
@@ -61,3 +62,29 @@ def scatter_mean(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
     else:
         out.floor_divide_(count)
     return out
+
+
+def save_embedding(embedding, output_path):
+
+    if len(embedding.size()) == 4:
+        print(embedding.size())
+        print('Batch')
+
+    else:
+        print('Single Embedding')
+        embedding = embedding.squeeze(0).detach().numpy()
+
+    E_DIM = embedding.detach().numpy().size
+    print(E_DIM)
+
+    flat_embedding = embedding.reshape((16, -1))
+
+    print(flat_embedding.shape)
+
+    np.savetxt(output_path, flat_embedding, delimiter=",")
+    print('done')
+
+if  __name__ == '__main__':
+    random_embedding = torch.rand((1,400, 400, 16))
+
+    save_embedding(random_embedding, output_path=None)

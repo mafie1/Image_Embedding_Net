@@ -1,6 +1,9 @@
 import torch
-import numpy
-
+import numpy as np
+import random
+import torch.nn as nn
+from sklearn.metrics import adjusted_rand_score
+import matplotlib.pyplot as plt
 
 def compute_per_channel_dice(input, target, epsilon=1e-6, weight=None):
     """
@@ -17,8 +20,8 @@ def compute_per_channel_dice(input, target, epsilon=1e-6, weight=None):
     # input and target shapes must match
     assert input.size() == target.size(), "'input' and 'target' must have the same shape"
 
-    input = flatten(input)
-    target = flatten(target)
+    input = torch.flatten(input)
+    target = torch.flatten(target)
     target = target.float()
 
     # compute per channel Dice Coefficient
@@ -78,3 +81,64 @@ class DiceLoss(_AbstractDiceLoss):
 
     def dice(self, input, target, weight):
         return compute_per_channel_dice(input, target, weight=self.weight)
+
+
+def counting_score(pred, ground_truth):
+
+    assert pred.shape == ground_truth.shape
+
+    N_pred = len(np.unique(pred))
+    N_GT = len(np.unique(ground_truth))
+
+    return np.abs(N_pred - N_GT)/N_GT
+
+def ARI_score(pred, ground_truth):
+
+    raise NotImplementedError
+    #assert pred.shape == ground_truth.shape
+
+    #ARI = adjusted_rand_score(pred, ground_truth)
+    #return ARI
+
+def multi_class_to_one_hot(tensor):
+
+    one_hot_vector = torch.nn.functional.one_hot(tensor)
+    return one_hot_vector
+
+
+def DICE_score(pred, ground_truth):
+    assert pred.shape == ground_truth.shape
+
+    #pred, ground_truth = multi_class_to_one_hot(pred), multi_class_to_one_hot(ground_truth)
+
+    nom = 2 * torch.sum(pred * ground_truth)
+
+    denom = torch.sum(ground_truth) + torch.sum(pred)
+
+    dice = float(nom) / float(denom)
+
+    return dice
+
+if __name__ == '__main__':
+    torch.manual_seed(5)
+    random.seed(5)
+
+    max = np.random.randint(1, 4)
+    print(max)
+
+    prediction = torch.randint(low=0, high=3, size=(1, 4, 4,))
+    ground_truth_image = torch.randint(low=0, high=max, size=(1, 4, 4))
+
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+    ax1.imshow(prediction.squeeze())
+    ax1.set_title('Prediction')
+    ax2.imshow(ground_truth_image.squeeze())
+    ax2.set_title('Ground Truth')
+
+    plt.show()
+
+    print(counting_score(prediction, ground_truth_image))
+
+    #print('ARI:', ARI_score(prediction, ground_truth_image))
+
+    print('Dice:', compute_per_channel_dice(prediction, ground_truth_image))

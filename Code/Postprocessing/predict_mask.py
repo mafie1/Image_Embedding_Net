@@ -2,9 +2,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import os
-import hdbscan
-from torchmetrics import IoU
-
+#import hdbscan
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
 
 from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
@@ -62,7 +60,7 @@ def get_bandwidth(emb):
 
 
 if __name__ == '__main__':
-    HEIGHT, WIDTH = 400, 400
+    HEIGHT, WIDTH = 200, 200
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -81,7 +79,7 @@ if __name__ == '__main__':
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt.nosync'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
     model_path = os.path.expanduser(rel_model_path)
 
     loaded_model = torch.load(model_path)
@@ -97,12 +95,13 @@ if __name__ == '__main__':
 
     print('Beginning Clustering')
     #result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
-    n_min = 140
+    n_min = 20
     epsilon = 0.5
 
     #result = cluster_agglo(embedding)
-    #result = cluster_dbscan(embedding, 150, 0.5)
-    result = cluster_hdbscan(embedding, n_min, epsilon)
+    result = cluster_dbscan(embedding, n_min, epsilon)
+    print(embedding.shape)
+    #result = cluster_hdbscan(embedding, n_min, epsilon)
     print('Number of Instances Detected:', np.unique(result))
     print('Number of Instances in Ground Truth:', np.unique(mask_example))
     #print('estimates bandwidth:', bng)
@@ -130,7 +129,7 @@ if __name__ == '__main__':
 
     fig.savefig('Segmentation.png', dpi = 200)
 
-    #plt.show()
+    plt.show()
 
     mask_example = np.array(mask_example.detach().numpy(), np.int)
 
