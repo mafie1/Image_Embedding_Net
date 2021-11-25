@@ -5,18 +5,12 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
-from Preprocessing.dataset_plants_binary import CustomDatasetBinary
-from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
+from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Postprocessing.dim_reduction import pca
 
 
-
-
 def visualization_train():
-    HEIGHT, WIDTH = 400, 400
+    HEIGHT, WIDTH = 100, 100
     DIM_PCA = 3
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
@@ -32,7 +26,7 @@ def visualization_train():
 
     train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    img_example, mask_example = train_set.__getitem__(1)
+    img_example, mask_example = val_set.__getitem__(0)
     image = img_example.unsqueeze(0)
     mask = mask_example
 

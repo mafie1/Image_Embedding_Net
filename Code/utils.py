@@ -66,6 +66,8 @@ def scatter_mean(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
 
 def save_embedding(embedding, output_path):
 
+    raise NotImplementedError
+
     if len(embedding.size()) == 4:
         print(embedding.size())
         print('Batch')
@@ -83,6 +85,7 @@ def save_embedding(embedding, output_path):
 
     np.savetxt(output_path, flat_embedding, delimiter=",")
     print('done')
+
 
 if  __name__ == '__main__':
     random_embedding = torch.rand((1,400, 400, 16))

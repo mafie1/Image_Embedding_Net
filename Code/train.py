@@ -1,16 +1,15 @@
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 import os
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-
-from model_from_spoco import UNet_spoco
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Custom_Loss.pp_loss import DiscriminativeLoss
-from model_from_spoco import UNet2
+from model import UNet2, UNet_spoco
+from tqdm import tqdm
 
 
 def trainer():
@@ -21,8 +20,8 @@ def trainer():
     #lambda_1 = lambda epoch: 0.5
 
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-    EPOCHS = 1
-    HEIGHT =  50
+    EPOCHS = 5
+    HEIGHT =  64
     WIDTH = HEIGHT
     IN_CHANNELS = 3  # RGB
     OUT_CHANNELS = 16 #output dimensions of embedding space
@@ -67,7 +66,7 @@ def trainer():
 
     #print(optimizer.state_dict())
 
-    for i in range(0, EPOCHS):
+    for i in tqdm(range(0, EPOCHS)):
         print('Entering Training Epoch {} out of {}'.format(i, EPOCHS))
 
         model.train()

@@ -1,5 +1,4 @@
 import torch
-import torch.optim as optim
 
 IN_CHANNELS = 3
 OUT_CHANNELS = 16

@@ -5,8 +5,7 @@ import os
 import hdbscan
 
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
-from Code.Preprocessing.plant_transforms import image_train_transform, mask_train_transform
-from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
+from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Code.Preprocessing.dataset_plants_binary import CustomDatasetBinary
 
 

@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
-from Code.Preprocessing.plant_transforms import image_train_transform, mask_train_transform
+from Code.Preprocessing.dataset_plants_multiple import image_train_transform, mask_train_transform
 
 
 class CustomDatasetBinary(Dataset):

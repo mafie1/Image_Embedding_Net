@@ -1,14 +1,15 @@
+import random
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import os
 import hdbscan
+from tqdm import tqdm
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
-
-from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
-from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
-#from Code.Preprocessing.dataset_plants_binary import CustomDatasetBinary
-from Code.model_from_spoco import UNet_spoco
+from metrics import counting_score, get_SBD
+from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
+from Code.model import UNet_spoco, UNet2
+import csv
 
 def cluster(emb, clustering_alg, semantic_mask=None):
     output_shape = emb.shape[1:]
@@ -44,12 +45,21 @@ def cluster_ms(emb, bandwidth, semantic_mask=None):
     clustering = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     return cluster(emb, clustering, semantic_mask)
 
+
 def cluster_agglo(emb, semantic_mask = None):
     clustering = AgglomerativeClustering()
     return cluster(emb, clustering, semantic_mask)
 
-def cluster_hdbscan(emb, min_size, eps, min_samples=None, semantic_mask=None):
-    clustering = hdbscan.HDBSCAN(min_cluster_size=min_size, cluster_selection_epsilon=eps, min_samples=min_samples)
+
+def cluster_hdbscan(emb, min_size, eps, min_samples=None, semantic_mask=None, metric = 'l1'):
+    """For hsbscan the optimal parameters are in the range of:
+    - for 200x200 images: min_size = 25 , epsilon = 0.4-0.5
+    - for 400x400 images: min_size = 140, epsilon = 0.4-0.5
+    increase both of 'l1' metric is used
+
+    usefull metrics are: 'l1' (manhattan), 'l2' (euclidean)
+    """
+    clustering = hdbscan.HDBSCAN(min_cluster_size=min_size, cluster_selection_epsilon=eps, min_samples=min_samples, metric = metric)
     return cluster(emb, clustering, semantic_mask)
 
 def get_bandwidth(emb):
@@ -58,8 +68,8 @@ def get_bandwidth(emb):
     return bandwidth
 
 
-if __name__ == '__main__':
-    HEIGHT, WIDTH = 100, 100
+def test():
+    HEIGHT, WIDTH = 200, 200
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -69,12 +79,11 @@ if __name__ == '__main__':
                                    image_transform=image_train_transform(HEIGHT, WIDTH),
                                    mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    #Plants2 = CustomDatasetBinary(dir=directory,
-     #                             transform=None,
-      #                            image_transform=image_train_transform(HEIGHT, WIDTH),
-       #                           mask_transform=mask_train_transform(HEIGHT, WIDTH))
+    torch.manual_seed(0)
+    random.seed(0)
+    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    img_example, mask_example = Plants.__getitem__(2)
+    img_example, mask_example = val_set.__getitem__(2)
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
@@ -88,29 +97,29 @@ if __name__ == '__main__':
     embedding = loaded_model(image).squeeze(0).detach().numpy()
     print('Forward Pass Done')
 
-    #bng = get_bandwidth(embedding)
-    #print('Bandwidth Estimation Done')
-    #print(bng)
+    # bng = get_bandwidth(embedding)
+    # print('Bandwidth Estimation Done')
+    # print(bng)
 
     print('Beginning Clustering')
-    #result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
-    n_min = 5
-    epsilon = 0.2
+    # result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
+    n_min = 40
+    epsilon = 0.5
 
-    #result = cluster_agglo(embedding)
+    # result = cluster_agglo(embedding)
 
-    #result = cluster_dbscan(embedding, n_min, epsilon)
+    # result = cluster_dbscan(embedding, n_min, epsilon)
     print(embedding.shape)
-    result = cluster_hdbscan(embedding, n_min, epsilon)
+    result = cluster_hdbscan(embedding, n_min, epsilon, metric='l2')
     print('Number of Instances Detected:', np.unique(result))
     print('Number of Instances in Ground Truth:', np.unique(mask_example))
-    #print('estimates bandwidth:', bng)
+    # print('estimates bandwidth:', bng)
     print('Clustering Done')
 
-    fig = plt.figure(figsize=(16,12))
+    fig = plt.figure(figsize=(16, 12))
     plt.title(r'HDBSCAN with $n_m = {}$ and $\epsilon = {}$'.format(n_min, epsilon))
     plt.subplot(1, 3, 1)
-    plt.title('Image', size = 'large')
+    plt.title('Image', size='large')
     plt.xticks([])
     plt.yticks([])
     plt.imshow(np.array(img_example.permute(1, 2, 0)))
@@ -118,19 +127,103 @@ if __name__ == '__main__':
     plt.subplot(1, 3, 2)
     plt.xticks([])
     plt.yticks([])
-    plt.title('Mask', size = 'large')
-    plt.imshow(mask_example.permute(1, 2, 0), cmap = 'Spectral', interpolation = 'nearest')
+    plt.title('Mask', size='large')
+    plt.imshow(mask_example.permute(1, 2, 0), cmap='Spectral', interpolation='nearest')
 
     plt.subplot(1, 3, 3)
-    plt.title('Predicted Mask', size = 'large')
+    plt.title('Predicted Mask', size='large')
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(result , cmap = 'Spectral', interpolation = 'nearest')
+    plt.imshow(result, cmap='Spectral', interpolation='nearest')
 
-    fig.savefig('Segmentation.png', dpi = 200)
+    fig.savefig('Segmentation.png', dpi=200)
 
     plt.show()
 
-    mask_example = np.array(mask_example.detach().numpy(), np.int)
+    mask_example = np.array(mask_example.detach().numpy(), int)
 
 
+def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
+
+    assert method in ['hdbscan', 'dbscan', 'meanshift']
+
+    if method == 'hdbscan':
+        clustering = cluster_hdbscan
+    elif method == 'dbscan':
+        clustering = cluster_dbscan
+    elif method == 'meanshift':
+        clustering = cluster_ms
+
+    HEIGHT, WIDTH = 200, 200
+
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
+    model_path = os.path.expanduser(rel_model_path)
+    loaded_model = torch.load(model_path)
+    loaded_model.eval()
+
+    rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = os.path.expanduser(rel_path)
+
+    output_directory = os.path.expanduser('~/Documents/BA_Thesis/Data_Dump/Prediction_HDB_Val_200/')
+
+    Plants = CustomDatasetMultiple(dir=directory,
+                                   transform=None,
+                                   image_transform=image_train_transform(HEIGHT, WIDTH),
+                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
+
+    torch.manual_seed(0)
+    random.seed(0)
+    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
+
+    running_counting_score = []
+    running_SBD = []
+
+    print('Entering Clustering Mode')
+    for i in tqdm(range(0,len(val_set))):
+
+        item, mask = val_set.__getitem__(i)
+        item = item.unsqueeze(0)
+        mask = mask.squeeze()
+        embedding = loaded_model(item).squeeze(0).detach().numpy()
+
+        #pred = cluster_dbscan(embedding, n_min, epsilon)
+        pred = clustering(embedding, n_min, epsilon, metric = 'l2')
+        #item = item.detach().numpy()
+        #pred = cluster_hdbscan(embedding, n_min, epsilon, metric = 'l2')
+        plt.imshow(pred, cmap='Spectral', interpolation='nearest')
+        plt.savefig(output_directory+'pred_image{}.png'.format(i), dpi=200)
+
+        plt.imshow(item.squeeze(0).permute(1,2,0), interpolation='nearest')
+        plt.savefig(output_directory+'image{}.png'.format(i), dpi=200)
+
+        plt.imshow(mask, interpolation = 'nearest')
+        plt.savefig(output_directory + 'mask{}.png'.format(i), dpi=200)
+
+
+        SBD = get_SBD(pred, mask.detach().numpy())
+        DiC = counting_score(pred, mask)
+
+        running_SBD = np.append(running_SBD, SBD)
+        running_counting_score = np.append(running_counting_score, DiC)
+
+#enter information on clustering and size
+    with open(output_directory + 'summary-{}-{}.csv'.format(HEIGHT, method), 'w') as f:
+        writer = csv.writer(f)
+
+        header = ['#', 'SBD', '|DiC|']
+        writer.writerow(header)
+
+        for j, c in enumerate(running_SBD):
+            writer.writerow([str(j), str(running_SBD[j]), str(running_counting_score[j])])
+
+        writer.writerow(['mean', running_SBD.mean(), running_counting_score.mean()])
+
+    print('The scores for {} for this validation set are:'.format(method))
+    print('Mean Counting Score:', running_counting_score.mean())
+    print('Mean Symmetric Best Dice:', running_SBD.mean())
+
+    print('Process Finished')
+
+
+if __name__ == '__main__':
+    apply_on_val_set(n_min = 100, epsilon=0.5)

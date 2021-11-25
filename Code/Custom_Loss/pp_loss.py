@@ -6,7 +6,7 @@ from Custom_Loss.cluster_variance import compute_cluster_variances
 from Custom_Loss.regularization_term import compute_regularizer_term
 from Custom_Loss.distance_term import compute_distance_term
 
-from model_from_spoco import UNet_spoco
+from model import UNet_spoco
 
 
 
@@ -98,8 +98,7 @@ def test():
 
 
 def test2():
-    from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple
-    from Preprocessing.plant_transforms import image_train_transform, mask_train_transform
+    from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
     import matplotlib.pyplot as plt
 
     directory = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'

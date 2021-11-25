@@ -7,7 +7,7 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
-from plant_transforms import mask_train_transform, image_train_transform
+from dataset_plants_multiple import mask_train_transform, image_train_transform
 
 
 class CustomDataset(Dataset):
