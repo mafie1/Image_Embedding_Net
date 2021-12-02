@@ -5,7 +5,7 @@ from unet_parts import *
 
 
 class UNet_spoco(nn.Module):
-    def __init__(self, in_channels, out_channels, f_map = [16, 32, 64, 128, 512]):
+    def __init__(self, in_channels, out_channels):
 
         super(UNet_spoco, self).__init__()
 
@@ -111,23 +111,6 @@ class UNet_spoco(nn.Module):
         return x31
 
 
-
-def test():
-    x = torch.randn((1, 4, 400, 400))
-
-    model = UNet_spoco(in_channels = 4, out_channels = 16)
-    preds = model(x)
-    #print(preds.shape)
-
-def test_small():
-    x = torch.randn((1, 3, 100, 100))
-
-    model = UNet_small(in_channels=3, out_channels=12)
-    preds = model(x)
-    print(preds.shape)
-
-
-
 class UNet_small(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNet_small, self).__init__()
@@ -185,6 +168,20 @@ class UNet_small(nn.Module):
 
         return x31
 
+
+def test():
+    x = torch.randn((1, 4, 400, 400))
+
+    model = UNet_spoco(in_channels = 4, out_channels = 16)
+    preds = model(x)
+    #print(preds.shape)
+
+def test_small():
+    x = torch.randn((1, 3, 100, 100))
+
+    model = UNet_small(in_channels=3, out_channels=12)
+    preds = model(x)
+    print(preds.shape)
 
 
 if __name__ == "__main__":
