@@ -130,7 +130,9 @@ class UNet_small(nn.Module):
         self.up_2 = ConvBlockBN(64, 32)
         self.up_3 = ConvBlockBN(32, out_channels)
 
+
     def forward(self, image):
+
         # print('Encoder:')
         x1 = self.down_1(image)
         # print('Down 2:', x3.shape)
@@ -146,6 +148,7 @@ class UNet_small(nn.Module):
 
         x7 = self.down_4(x6)
         x8 = self.max_pool_2d(x7)
+
 
 
         x20 = self.upsample_3(x8)
@@ -167,6 +170,8 @@ class UNet_small(nn.Module):
         x31 = self.up_3(x30)
 
         return x31
+
+
 
 
 def test():
