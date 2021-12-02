@@ -7,12 +7,14 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torchvision.transforms as T
+#from torchvision.transforms import InterpolationMode
+#import cv2
 
 
 def mask_train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
     transform = T.Compose(
         [T.ToPILImage(),
-         T.Resize((IMAGE_HEIGHT,IMAGE_WIDTH), interpolation = Image.NEAREST),
+         T.Resize((IMAGE_HEIGHT,IMAGE_WIDTH), interpolation=0), #InterpolationMode.NEAREST
          T.RandomHorizontalFlip(),
          T.RandomVerticalFlip(),
          T.ToTensor()])
@@ -21,7 +23,7 @@ def mask_train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
 def image_train_transform(IMAGE_HEIGHT, IMAGE_WIDTH):
     transform = T.Compose(
         [T.ToPILImage(),
-         T.Resize((IMAGE_HEIGHT,IMAGE_WIDTH)),
+         T.Resize((IMAGE_HEIGHT,IMAGE_WIDTH), interpolation=2), #nterpolationMode.BILINEAR
          T.RandomHorizontalFlip(),
          T.RandomVerticalFlip(),
          T.ToTensor(),
@@ -64,13 +66,13 @@ class CustomDatasetMultiple(Dataset):
             for i in range(0, len(uniques)):
                 mask = np.where(mask == uniques[i], integers[i], mask)
 
-            # mask = cv2.resize(mask, dsize=(256, 256), interpolation=cv2.INTER_NEAREST)
-            # mask = skimage.morphology.binary_dilation(mask)
+            #image = cv2.resize(image, dsize = (512, 512), interpolation=cv2.INTER_LINEAR)
+            #mask = cv2.resize(mask, dsize = (512, 512), interpolation=cv2.INTER_NEAREST)
 
             self.store_masks.append(mask)
             self.store_images.append(image)
 
-        print('Done Initiating Dataset')
+        print('Done Initializing Dataset')
 
     def __len__(self):
         return len(self.images)
@@ -110,8 +112,8 @@ def test():
     img_path = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1'
     # mask_path = '/Users/luisa/Documents/BA_Thesis/Datasets for Multiple Instance Seg/CVPPP2017_instances/training/A1/plant001_label.png'
 
-    HEIGHT = 256
-    WIDTH = 256
+    HEIGHT = 512
+    WIDTH = 512
 
     Plants = CustomDatasetMultiple(dir=img_path,
                                    transform=None,
@@ -133,7 +135,7 @@ def test():
     plt.title('Mask')
     plt.imshow(mask_example.permute(1,2,0))
 
-    #print(torch.unique(mask_example))
+    print(torch.unique(mask_example))
     plt.show()
 
 

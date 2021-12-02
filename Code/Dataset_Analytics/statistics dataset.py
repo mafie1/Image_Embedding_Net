@@ -4,14 +4,28 @@ from PIL import Image
 import pandas as pd
 import plotly.express as px
 from time import time
+import torch
+import random
+from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 
 start_time = time()
+
+torch.manual_seed(0)
+random.seed(0)
 
 dir = '/Users/luisa/Documents/BA_Thesis/CVPPP2017_instances/training/A1'
 contents = os.listdir(dir)
 images = list(filter(lambda k: 'rgb' in k, contents))
 
 print('The Dataset A1 contains ', len(images), ' images')
+
+Plants = CustomDatasetMultiple(image_directory,
+                               transform=None,
+                               image_transform=image_train_transform(HEIGHT, WIDTH),
+                               mask_transform=mask_train_transform(HEIGHT, WIDTH)
+                               )
+
+train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
 
 def get_instance_count():

@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Code/Preprocessing" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Code/saved_models" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (cnn_env)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.9 (Pytorch_M1)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

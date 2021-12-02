@@ -31,7 +31,6 @@ plt.xticks([])
 plt.yticks([])
 plt.axis('off')
 
-
 ax1 = fig.add_subplot(131)
 ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
@@ -58,5 +57,5 @@ ax3.set_xticks([])
 ax3.set_yticks([])
 ax3.imshow(binary_mask_example.squeeze(), cmap = 'gray')
 
-plt.savefig('Image_Overview.png')
+plt.savefig('Image_Overview.png', dpi=200)
 plt.show()

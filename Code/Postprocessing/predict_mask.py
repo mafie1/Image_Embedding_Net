@@ -8,8 +8,9 @@ from tqdm import tqdm
 from sklearn.cluster import DBSCAN, MeanShift, estimate_bandwidth, AgglomerativeClustering
 from metrics import counting_score, get_SBD
 from Code.Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
-from Code.model import UNet_spoco, UNet2
+from Code.model import UNet_spoco, UNet_small
 import csv
+
 
 def cluster(emb, clustering_alg, semantic_mask=None):
     output_shape = emb.shape[1:]
@@ -51,7 +52,7 @@ def cluster_agglo(emb, semantic_mask = None):
     return cluster(emb, clustering, semantic_mask)
 
 
-def cluster_hdbscan(emb, min_size, eps, min_samples=None, semantic_mask=None, metric = 'l1'):
+def cluster_hdbscan(emb, min_size, eps, min_samples=None, semantic_mask=None, metric = 'l2'):
     """For hsbscan the optimal parameters are in the range of:
     - for 200x200 images: min_size = 25 , epsilon = 0.4-0.5
     - for 400x400 images: min_size = 140, epsilon = 0.4-0.5
@@ -68,8 +69,8 @@ def get_bandwidth(emb):
     return bandwidth
 
 
-def test():
-    HEIGHT, WIDTH = 200, 200
+def cluster_single_image(save = None, index = 0, n_min = 200, epsilon = 0.5):
+    HEIGHT, WIDTH = 512, 512
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -83,15 +84,17 @@ def test():
     random.seed(0)
     train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    img_example, mask_example = val_set.__getitem__(2)
+    img_example, mask_example = val_set.__getitem__(index)
 
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
+
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/epoch-900-dim2-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
 
-    loaded_model = torch.load(model_path)
-
+    loaded_model = UNet_small(in_channels=3, out_channels=2)
+    loaded_model.load_state_dict(torch.load(model_path))
+    #loaded_model = torch.load(model_path)
     loaded_model.eval()
 
     embedding = loaded_model(image).squeeze(0).detach().numpy()
@@ -103,13 +106,10 @@ def test():
 
     print('Beginning Clustering')
     # result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
-    n_min = 40
-    epsilon = 0.5
+
 
     # result = cluster_agglo(embedding)
-
     # result = cluster_dbscan(embedding, n_min, epsilon)
-    print(embedding.shape)
     result = cluster_hdbscan(embedding, n_min, epsilon, metric='l2')
     print('Number of Instances Detected:', np.unique(result))
     print('Number of Instances in Ground Truth:', np.unique(mask_example))
@@ -136,14 +136,14 @@ def test():
     plt.yticks([])
     plt.imshow(result, cmap='Spectral', interpolation='nearest')
 
-    fig.savefig('Segmentation.png', dpi=200)
-
+    if save is not None:
+        fig.savefig('Segmentation.png', dpi=200)
     plt.show()
 
-    mask_example = np.array(mask_example.detach().numpy(), int)
+    #mask_example = np.array(mask_example.detach().numpy(), int)
 
 
-def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
+def apply_on_val_set(n_min, epsilon, method = 'hdbscan', save_images = None):
 
     assert method in ['hdbscan', 'dbscan', 'meanshift']
 
@@ -154,17 +154,20 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
     elif method == 'meanshift':
         clustering = cluster_ms
 
-    HEIGHT, WIDTH = 200, 200
+    HEIGHT, WIDTH = 512, 512
 
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1200.pt'
     model_path = os.path.expanduser(rel_model_path)
-    loaded_model = torch.load(model_path)
+
+    loaded_model = UNet_spoco(in_channels=3, out_channels=16)
+    loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
+
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
 
-    output_directory = os.path.expanduser('~/Documents/BA_Thesis/Data_Dump/Prediction_HDB_Val_200/')
+    output_directory = os.path.expanduser('~/Documents/BA_Thesis/Data_Dump/Prediction_DB_Val_512/')
 
     Plants = CustomDatasetMultiple(dir=directory,
                                    transform=None,
@@ -175,6 +178,11 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
     random.seed(0)
     train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
+    val_set_split1, val_set_split2 = torch.utils.data.random_split(val_set, [8, 20])
+
+    val_set=val_set_split1
+    print(type(train_set))
+
     running_counting_score = []
     running_SBD = []
 
@@ -182,22 +190,22 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
     for i in tqdm(range(0,len(val_set))):
 
         item, mask = val_set.__getitem__(i)
+
         item = item.unsqueeze(0)
         mask = mask.squeeze()
         embedding = loaded_model(item).squeeze(0).detach().numpy()
 
-        #pred = cluster_dbscan(embedding, n_min, epsilon)
-        pred = clustering(embedding, n_min, epsilon, metric = 'l2')
-        #item = item.detach().numpy()
-        #pred = cluster_hdbscan(embedding, n_min, epsilon, metric = 'l2')
-        plt.imshow(pred, cmap='Spectral', interpolation='nearest')
-        plt.savefig(output_directory+'pred_image{}.png'.format(i), dpi=200)
+        pred = clustering(embedding, n_min, epsilon)
 
-        plt.imshow(item.squeeze(0).permute(1,2,0), interpolation='nearest')
-        plt.savefig(output_directory+'image{}.png'.format(i), dpi=200)
+        if save_images is not None:
+            plt.imshow(pred, cmap='Spectral', interpolation='nearest')
+            plt.savefig(output_directory+'pred_image{}.png'.format(i), dpi=200)
 
-        plt.imshow(mask, interpolation = 'nearest')
-        plt.savefig(output_directory + 'mask{}.png'.format(i), dpi=200)
+            plt.imshow(item.squeeze(0).permute(1,2,0), interpolation='nearest')
+            plt.savefig(output_directory+'image{}.png'.format(i), dpi=200)
+
+            plt.imshow(mask, interpolation = 'nearest')
+            plt.savefig(output_directory + 'mask{}.png'.format(i), dpi=200)
 
 
         SBD = get_SBD(pred, mask.detach().numpy())
@@ -207,7 +215,7 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
         running_counting_score = np.append(running_counting_score, DiC)
 
 #enter information on clustering and size
-    with open(output_directory + 'summary-{}-{}.csv'.format(HEIGHT, method), 'w') as f:
+    with open(output_directory + 'summary-{}-{}-{}.csv'.format(HEIGHT, method, n_min), 'w') as f:
         writer = csv.writer(f)
 
         header = ['#', 'SBD', '|DiC|']
@@ -218,12 +226,43 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan'):
 
         writer.writerow(['mean', running_SBD.mean(), running_counting_score.mean()])
 
-    print('The scores for {} for this validation set are:'.format(method))
-    print('Mean Counting Score:', running_counting_score.mean())
-    print('Mean Symmetric Best Dice:', running_SBD.mean())
+    #print('The scores for {} for this validation set are:'.format(method))
+    #print('Mean Counting Score:', running_counting_score.mean())
+    #print('Mean Symmetric Best Dice:', running_SBD.mean())
+    #print('Process Finished')
 
-    print('Process Finished')
+    return running_counting_score.mean(), running_SBD.mean()
+
 
 
 if __name__ == '__main__':
-    apply_on_val_set(n_min = 100, epsilon=0.5)
+    """
+    score1 = []
+    score2 = []
+
+    print('Start Searching for best n_min with fixed epsilon')
+    for n in [150]:
+        DiC, SBD = apply_on_val_set(n_min=n, epsilon=0.5, method = 'hdbscan')
+        score1.append(DiC)
+        score2.append(SBD)
+
+    plt.plot(range(0,len(score1)), score1, label='DiC')
+    plt.plot(range(0,len(score2)), score2, label='SBD')
+    plt.legend(borderpad = True)
+
+    plt.savefig('Optimization_of n_min.png', dpi=200)
+    plt.show()
+    
+    """
+    cluster_single_image()
+
+
+
+
+
+
+    #apply_on_val_set(n_min = 250, epsilon=0.5, method = 'hdbscan')
+    #cluster_single_image(save=None, index = 13, n_min=250, epsilon=0.5)
+
+
+

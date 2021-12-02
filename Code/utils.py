@@ -1,6 +1,7 @@
 import torch
 from typing import Optional
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def broadcast(src: torch.Tensor, other: torch.Tensor, dim: int):
@@ -85,6 +86,24 @@ def save_embedding(embedding, output_path):
 
     np.savetxt(output_path, flat_embedding, delimiter=",")
     print('done')
+
+
+def plot_results_from_training(epoch, losses, val_losses, title=None, save_path = None):
+    plt.plot(np.linspace(1, epoch, epoch), losses / 80, label='Train Loss')
+    plt.plot(np.linspace(1, epoch, epoch), val_losses/ 28, label='Validation Loss')
+
+    if title is not None:
+        plt.title('Train and Validation Loss Per Epoch per Image-Mask-Sample '+ str(title))
+    else:
+        plt.title('Train and Validation Loss Per Epoch per Image-Mask-Sample')
+
+    plt.grid()
+    plt.xlabel('Training Epoch')
+    plt.ylabel('Training Loss')
+    plt.yscale('log')
+    plt.legend(borderpad=True)
+
+    plt.savefig(save_path+'/loss_statistic.png', dpi=200)
 
 
 if  __name__ == '__main__':

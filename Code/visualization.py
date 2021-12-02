@@ -7,11 +7,13 @@ import pandas as pd
 import torch
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Postprocessing.dim_reduction import pca
+from model import UNet_spoco, UNet_small
 
 
-def visualization_train():
-    HEIGHT, WIDTH = 100, 100
-    DIM_PCA = 3
+def visualization_train(DIM_PCA = None):
+    HEIGHT, WIDTH = 512, 512
+    OUT_CHANNELS = 2
+
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
@@ -26,168 +28,183 @@ def visualization_train():
 
     train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    img_example, mask_example = val_set.__getitem__(0)
+    img_example, mask_example = train_set.__getitem__(0)
     image = img_example.unsqueeze(0)
     mask = mask_example
 
     """loading trained model"""
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/epoch-700-dim2-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
-    loaded_model = torch.load(model_path)
+    loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
+    #loaded_model = UNet_spoco(in_channels=3, out_channels=OUT_CHANNELS)
+    loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
 
     """Forward pass to get embeddings"""
-    embedding = loaded_model(image)
+    embedding = loaded_model(image).squeeze(0)
 
-    reduced_embedding = pca(embedding, output_dimensions=3).detach().numpy().reshape((DIM_PCA, -1))
-
-    print(reduced_embedding.shape)
-
-
-    #pca_output = pca(embedding).squeeze(0).view(3, 400, 400)
-    #plt.imshow(pca_output.permute(1, 2, 0), cmap='Accent')
-    #plt.show()
-
-    embedding = embedding.squeeze(0)
-
-    flat_embedding = embedding.detach().numpy().reshape((16, -1))
+    flat_embedding = embedding.detach().numpy().reshape((OUT_CHANNELS, -1))
     flat_mask = mask.reshape(-1)
 
+    if DIM_PCA is not None:
+        pca_output = pca(embedding).squeeze(0).view(3, HEIGHT, WIDTH)
+        reduced_embedding = pca(embedding, output_dimensions=3).detach().numpy().reshape((DIM_PCA, -1))
+
+        if DIM_PCA == 3:
+            plt.imshow(pca_output.permute(1, 2, 0), cmap='Accent')
+            plt.show()
+
+        """Create DataFrame of reduced embedding (via PCA)"""
+        pca_df = pd.DataFrame()
+        pca_df['label'] = flat_mask[:]
+        for i in range(0, DIM_PCA):
+            pca_df['dim{}'.format(i + 1)] = reduced_embedding[i][:]
+
+        pca_df['label'] = pca_df['label'] + 1
+
+        fig_pca = px.scatter_3d(pca_df, x='dim1', y='dim2', z='dim3', color='label', symbol='label', size='label')
+
+
+
     unique_val = np.unique(flat_mask)
-
-    """Create DataFrame of reduced embedding (via PCA)"""
-    pca_df = pd.DataFrame()
-    pca_df['label'] = flat_mask[:]
-
-    for i in range(0, DIM_PCA):
-        pca_df['dim{}'.format(i+1)] = reduced_embedding[i][:]
-
 
     """Create DataFrame of fully dimensional embeddings"""
     df = pd.DataFrame()
     df["label"] = flat_mask[:]
 
-    for i in range(0, 16):
+    for i in range(0, OUT_CHANNELS):
         df['dim{}'.format(i + 1)] = flat_embedding[i][:]
 
     # filter out background
     df_bg_free = df.query('label != 0.0')
-    print(flat_embedding.shape)
-    #print(df_bg_free.keys())
-    #print(df_bg_free.head(5))
 
-
-    #print(df.sum())
     print(df_bg_free.std())
-    #print(df_zeroed.head(10))
 
     # Plot selected dimensions
+    df['label'] = df['label'] + 1
 
-    fig_pca = px.scatter_3d(pca_df, x='dim1', y = 'dim2', z = 'dim3', color = 'label', symbol = 'label', size = 'label')
-    #fig = px.scatter(df_bg_free, x = 'dim1', y = 'dim2', color = 'label', marginal_x="rug", marginal_y="rug", title='background free')
-    fig = px.scatter_3d(df_bg_free, x = 'dim4', y = 'dim7', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
+    """Create Animation"""
+    #px.scatter(df, x="dim1", y="dim2", animation_frame="Epoch", animation_group="country",
+     #          size="pop", color="continent", hover_name="country",
+      #         log_x=True, size_max=55, range_x=[100, 100000], range_y=[25, 90])
+    #fig = px.scatter_3d(df_bg_free, x = 'dim4', y = 'dim7', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
 
-    df['label'] = df['label']+1
+    #fig = px.scatter(df, x = 'dim1', y = 'dim2', color = 'label', size = 'label', symbol = 'label')
+
+    #fig = px.scatter(df, x="dim1", y="dim2", animation_frame="label")
+
 
     #fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
                        # title = 'Instance Pixel Embeddings shown in selected dimensions',
                         #width = 1200, height = 800)
 
-    #fig = px.scatter(df, x='dim2', y='dim3', color='label', symbol='label', size = 'label',
-                      #  title = 'Instance Pixel Embeddings shown in selected dimensions',
-                      #  width = 1200, height = 800)
+    fig = px.scatter(df, x='dim1', y='dim2', color='label', symbol='label', size = 'label',
+                        title = 'Instance Pixel Embeddings shown in selected dimensions',
+                        width = 1600, height = 800)
+
     fig.update_layout(legend_orientation="h")
     #fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
      #                                         ticks="outside"))
-    #fig.show()
-    fig_pca.show()
+    fig.show()
     #filtered_embedding = df_bg_free.drop('label', axis=1).to_numpy().reshape(-1, 16)
 
-    #Preparing Data for PCA
 
-"""
-    data = df.drop('label', axis = 1)
-    print(data.head(5))
+def make_video(folder):
+    HEIGHT, WIDTH = 512, 512
+    OUT_CHANNELS = 2
 
-    scaler = StandardScaler()
-    scaler.fit(data)
+    torch.manual_seed(0)
+    random.seed(0)
 
-    scaled_data =scaler.transform(data)
+    rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = os.path.expanduser(rel_path)
 
-    pca = PCA(n_components = 3)
-    pca.fit(scaled_data)
+    Plants = CustomDatasetMultiple(dir=directory,
+                                   transform=None,
+                                   image_transform=image_train_transform(HEIGHT, WIDTH),
+                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    x_pca = pca.transform(scaled_data)
-    print(scaled_data.shape, x_pca.shape)
+    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
 
-    x_pca = x_pca.reshape((3,-1))
+    img_example, mask_example = train_set.__getitem__(0)
+    image = img_example.unsqueeze(0)
+    mask = mask_example
+    flat_mask = mask.reshape(-1)
 
-    x_pca_df = pd.DataFrame()
-    x_pca_df['label'] = df.label
-    x_pca_df["PCA dim 1"] = x_pca[0][:]
-    x_pca_df['PCA dim 2'] = x_pca[1][:]
-    x_pca_df['PCA dim 3'] = x_pca[2][:]
-
-    print(x_pca_df.head(5))
-
-    fig1 = px.scatter_3d(x_pca_df, x='PCA dim 1', y='PCA dim 2', z='PCA dim 3', color='label', symbol = 'label')
-    fig1.show()
-
-"""
-    #print(flat_embedding.shape)
-
-    #PCA of Filtered Labels (without background)
-    #input_for_PCA = flat_embedding.transpose()
-    #scaler = StandardScaler()
-
-    #input_for_PCA = scaler.fit_transform(input_for_PCA).transpose()
-    #scaled_instances = np.array([input_for_PCA * masks[i].reshape((16, -1)) for i in values])
-    #print(input_for_PCA.shape)
-
-    #print(filtered_embedding.shape)
-
-    #pca = PCA(n_components=3)
-    #pca.fit(input_for_PCA)
-    #X = pca.transform(input_for_PCA).reshape(3, -1)
-
-    #print('Variance Explained:', pca.explained_variance_ratio_)
-    #print('The singular values are: ', pca.singular_values_)
-
-    #X = pca.fit_transform(filtered_embedding).reshape(3, -1)
-    #print('PCA done')
-
-    #df_PCA = pd.DataFrame()
-    #df_PCA['label'] = df_bg_free['label']
-    #df_PCA["PCA_dim_1"] = X[0][:]
-    #df_PCA["PCA_dim_2"] = X[1][:]
-    #df_PCA["PCA_dim_3"] = X[2][:]
-
-    #print(pca.singular_values_)
-
-    #TSNE of Filtered Labels
-
-    #tsne = TSNE(n_components = 3, n_iter=250)
-    #X = tsne.fit_transform(filtered_embedding).reshape(3, -1)
-    #print('TSNE done')
-    #print(X.shape)
+    """loading trained models"""
 
 
-    #df_TSNE = pd.DataFrame()
-    #df_TSNE["label"] = df_bg_free['label']
-    #df_TSNE["TSNE_dim_1"] = X[0][:]
-    #df_TSNE["TSNE_dim_2"] = X[1][:]
-    #df_TSNE["TSNE_dim_3"] = X[2][:]
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/epoch-700-dim2-s512.pt'
+    model_path = os.path.expanduser(rel_model_path)
 
-    #print(df_TSNE.head(5))
+    contents = sorted(os.listdir(folder))
+    models = np.array(list(filter(lambda k: 'epoch' in k, contents)))
+    loaded_models = np.empty(models.shape)
+    print(models)
+
+    df = pd.DataFrame()
+
+    for i, m in enumerate(models):
+        loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
+        loaded_model.load_state_dict(torch.load(folder + models[i]))
+        loaded_model.eval()
+
+        embedding = loaded_model(image).squeeze(0)
+        flat_embedding = embedding.detach().numpy().reshape((OUT_CHANNELS, -1))
+
+        df_i = pd.DataFrame()
+        df_i["label"] = flat_mask[:]
+        df_i['epoch'] = i
+
+        for i in range(0, OUT_CHANNELS):
+            df_i['dim{}'.format(i + 1)] = flat_embedding[i][:]
+
+        df = df.append(df_i)
 
 
-    #fig1 = px.scatter_3d(df_PCA, x = 'PCA_dim_1', y = 'PCA_dim_2', z = 'PCA_dim_3', color = 'label')
-    # fig2 = px.scatter_3d(df_TSNE, x = 'TSNE_dim_1', y = 'TSNE_dim_2', z = 'TSNE_dim_3', color = 'label')
+    #print(df.head(-5))
+    df['label'] = df['label'] + 1
 
-    #fig1.show()
+
+    fig = px.scatter(df, x="dim1", y="dim2", animation_frame="epoch", symbol='label', color='label',
+                     width=1600, height=1000,
+                     title='Instance Embeddings',
+                     range_x=[0, 20], range_y=[0, 20])
+
+    fig.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 0
+    fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 5*(len(models)+1)
+
+    fig.show()
+
+
+    unique_val = np.unique(flat_mask)
+
+    # filter out background
+    #df_bg_free = df.query('label != 0.0')
+    # #print(df_bg_free.std())
+
+    # Plot selected dimensions
+
+
+
+    # fig = px.scatter(df, x="dim1", y="dim2", animation_frame="label")
+
+    # fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
+    # title = 'Instance Pixel Embeddings shown in selected dimensions',
+    # width = 1200, height = 800)
+
+    #fig = px.scatter(df, x='dim1', y='dim2', color='label', symbol='label', size='label',
+                     #title='Instance Pixel Embeddings shown in selected dimensions',
+                     #width=1600, height=800)
+
+    #fig.update_layout(legend_orientation="h")
+    # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
+    #                                         ticks="outside"))
+    # filtered_embedding = df_bg_free.drop('label', axis=1).to_numpy().reshape(-1, 16)
 
 
 if __name__ == '__main__':
-    visualization_train()
+    #visualization_train()
+    make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/')
 
 

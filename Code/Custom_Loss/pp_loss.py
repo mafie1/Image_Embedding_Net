@@ -75,7 +75,7 @@ def test():
     WIDTH = 150
     E_DIM = 16
 
-    model = UNet_spoco(in_channels=3, out_channels=16)
+    model = UNet_spoco(in_channels=3, out_channels=2)
 
     random_image = torch.rand(1, 3, HEIGHT, WIDTH) * 255
     prediction_to_image = model(random_image)
@@ -130,24 +130,5 @@ def test2():
 
 
 
-
 if __name__ == '__main__':
     test2()
-
-# _________________________________
-#mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32) / 255
-#image = np.array(Image.open(img_path).convert("L"), dtype=np.float32)
-# _________________________________
-
-#image_tensor = torch.tensor(image).unsqueeze(0).unsqueeze(0)  # [1, 1, 530, 500]
-#mask_tensor = torch.tensor(mask, dtype=int).unsqueeze(0)  # [1, 530, 500]
-
-# mask to instance_mask- matrix:
-#mask_flat = mask.flatten()  # [1, 530 * 500]
-#instances = np.unique(mask_flat)  # = [0, 1]
-
-
-# display random prediction as image
-# plt.title('Random 3d embedding.')
-# plt.imshow(random_prediction.permute(1,2,0).detach().numpy().astype(np.uint8))
-# plt.show()

@@ -36,24 +36,16 @@ def compute_distance_term(embedding, target, delta_d = 2.5, ignore_zero_label = 
     return distance_term
 
 
-def test():
-    HEIGHT = 5
-    WIDTH = 5
-    torch.manual_seed(3)
-    random_prediction = torch.rand(2, HEIGHT, WIDTH) * 255  # only 2 embedding dimensions [2, Height, Width]
-    random_mask_tensor = torch.randint(low=0, high=2, size=(1, HEIGHT, WIDTH))  # [1, Height, Width]
-
-    compute_distance_term(random_prediction, random_mask_tensor, delta_d= 2.)
 
 def test2():
-    #now test if it works with 2+ instances
+
     HEIGHT = 50
     WIDTH = 50
     torch.manual_seed(3)
-    random_prediction = torch.rand(2,HEIGHT,WIDTH)*255
+    random_prediction = torch.rand(2, HEIGHT, WIDTH)*255
     random_mask_tensor = torch.randint(low= 0, high = 3, size = (1,HEIGHT,WIDTH))
 
-    compute_distance_term(random_prediction, random_mask_tensor, delta_d = 2.)
+    compute_distance_term(random_prediction, random_mask_tensor, delta_d=2.)
 
 
 if __name__ == '__main__':
