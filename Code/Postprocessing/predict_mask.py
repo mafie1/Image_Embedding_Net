@@ -240,7 +240,6 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan', save_images = None):
 
 
 if __name__ == '__main__':
-
     cluster_single_image()
     #score1 = []
     #score2 = []
