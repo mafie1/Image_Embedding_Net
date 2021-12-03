@@ -4,7 +4,6 @@ torch.backends.cudnn.benchmark = True #may slow training at the beginning but wi
 
 big = None
 
-
 LEARNING_RATE = 0.001  # 1e-3 empfohlen
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 

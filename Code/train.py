@@ -10,7 +10,6 @@ from model import UNet_spoco, UNet_small
 from tqdm import tqdm
 from utils import plot_results_from_training
 import shutil
-
 from params import *
 
 def trainer():

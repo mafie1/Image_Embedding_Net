@@ -6,8 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/Code/Postprocessing" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Code/Preprocessing" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Code/saved_models" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/ven" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (Pytorch_M1)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.8 (Deep_Learning)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

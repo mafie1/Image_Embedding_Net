@@ -33,7 +33,6 @@ def cluster(emb, clustering_alg, semantic_mask=None):
     clusters = clustering_alg.fit_predict(flattened_embeddings[flattened_mask == 1])
     # always increase the labels by 1 cause clustering results start from 0 and we may loose one object
     result[flattened_mask == 1] = clusters + 1
-
     return result.reshape(output_shape)
 
 
@@ -48,7 +47,7 @@ def cluster_ms(emb, bandwidth, semantic_mask=None):
 
 
 def cluster_agglo(emb, semantic_mask = None):
-    clustering = AgglomerativeClustering()
+    clustering = AgglomerativeClustering(n_clusters=5)
     return cluster(emb, clustering, semantic_mask)
 
 
@@ -69,7 +68,7 @@ def get_bandwidth(emb):
     return bandwidth
 
 
-def cluster_single_image(save = None, index = 0, n_min = 200, epsilon = 0.5):
+def cluster_single_image(save = None, index = 3, n_min = 200, epsilon = 0.5, plot = None):
     HEIGHT, WIDTH = 512, 512
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
@@ -108,37 +107,42 @@ def cluster_single_image(save = None, index = 0, n_min = 200, epsilon = 0.5):
     # result = np.array(cluster_ms(embedding, bandwidth=bng) - 1, np.int)  # labels start at 0
 
 
-    # result = cluster_agglo(embedding)
+    #result = cluster_agglo(embedding)
     # result = cluster_dbscan(embedding, n_min, epsilon)
     result = cluster_hdbscan(embedding, n_min, epsilon, metric='l2')
+
+    SBD = get_SBD(result, mask.detach().numpy())
+    return SBD
+
     print('Number of Instances Detected:', np.unique(result))
     print('Number of Instances in Ground Truth:', np.unique(mask_example))
     # print('estimates bandwidth:', bng)
     print('Clustering Done')
 
-    fig = plt.figure(figsize=(16, 12))
-    plt.title(r'HDBSCAN with $n_m = {}$ and $\epsilon = {}$'.format(n_min, epsilon))
-    plt.subplot(1, 3, 1)
-    plt.title('Image', size='large')
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(np.array(img_example.permute(1, 2, 0)))
+    if plot is not None:
+        fig = plt.figure(figsize=(16, 12))
+        plt.title(r'HDBSCAN with $n_m = {}$ and $\epsilon = {}$'.format(n_min, epsilon))
+        plt.subplot(1, 3, 1)
+        plt.title('Image', size='large')
+        plt.xticks([])
+        plt.yticks([])
+        plt.imshow(np.array(img_example.permute(1, 2, 0)))
 
-    plt.subplot(1, 3, 2)
-    plt.xticks([])
-    plt.yticks([])
-    plt.title('Mask', size='large')
-    plt.imshow(mask_example.permute(1, 2, 0), cmap='Spectral', interpolation='nearest')
+        plt.subplot(1, 3, 2)
+        plt.xticks([])
+        plt.yticks([])
+        plt.title('Mask', size='large')
+        plt.imshow(mask_example.permute(1, 2, 0), cmap='Spectral', interpolation='nearest')
 
-    plt.subplot(1, 3, 3)
-    plt.title('Predicted Mask', size='large')
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(result, cmap='Spectral', interpolation='nearest')
+        plt.subplot(1, 3, 3)
+        plt.title('Predicted Mask', size='large')
+        plt.xticks([])
+        plt.yticks([])
+        plt.imshow(result, cmap='Spectral', interpolation='nearest')
 
-    if save is not None:
-        fig.savefig('Segmentation.png', dpi=200)
-    plt.show()
+        if save is not None:
+            fig.savefig('Segmentation.png', dpi=200)
+        plt.show()
 
     #mask_example = np.array(mask_example.detach().numpy(), int)
 
@@ -156,10 +160,10 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan', save_images = None):
 
     HEIGHT, WIDTH = 512, 512
 
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1200.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/epoch-900-dim2-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
 
-    loaded_model = UNet_spoco(in_channels=3, out_channels=16)
+    loaded_model = UNet_small(in_channels=3, out_channels=2)
     loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
 
@@ -187,7 +191,8 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan', save_images = None):
     running_SBD = []
 
     print('Entering Clustering Mode')
-    for i in tqdm(range(0,len(val_set))):
+
+    for i in tqdm(range(0,len(val_set),4)):
 
         item, mask = val_set.__getitem__(i)
 
@@ -234,31 +239,27 @@ def apply_on_val_set(n_min, epsilon, method = 'hdbscan', save_images = None):
     return running_counting_score.mean(), running_SBD.mean()
 
 
-
 if __name__ == '__main__':
-    """
-    score1 = []
-    score2 = []
 
-    print('Start Searching for best n_min with fixed epsilon')
-    for n in [150]:
-        DiC, SBD = apply_on_val_set(n_min=n, epsilon=0.5, method = 'hdbscan')
-        score1.append(DiC)
-        score2.append(SBD)
-
-    plt.plot(range(0,len(score1)), score1, label='DiC')
-    plt.plot(range(0,len(score2)), score2, label='SBD')
-    plt.legend(borderpad = True)
-
-    plt.savefig('Optimization_of n_min.png', dpi=200)
-    plt.show()
-    
-    """
     cluster_single_image()
+    #score1 = []
+    #score2 = []
 
+    #print('Start Searching for best n_min with fixed epsilon')
+    #for n in [50, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 250, 300, 350, 400]:
+     #   SBD = cluster_single_image(n_min=n, epsilon=0.5)
+        #score1.append(DiC)
+      #  score2.append(SBD)
 
+    #plt.plot(range(0,len(score1)), score1, label='DiC')
+    #plt.plot(range(0,len(score2)), score2, label='SBD')
+    #plt.legend(borderpad = True)
 
+    #plt.savefig('Optimization_of n_min.png', dpi=200)
+    #plt.show()
+    
 
+    #cluster_single_image()
 
 
     #apply_on_val_set(n_min = 250, epsilon=0.5, method = 'hdbscan')

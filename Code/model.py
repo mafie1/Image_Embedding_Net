@@ -150,7 +150,6 @@ class UNet_small(nn.Module):
         x8 = self.max_pool_2d(x7)
 
 
-
         x20 = self.upsample_3(x8)
         x21 = TF.resize(x20, x5.shape[2:])
         x22 = torch.cat((x5, x21), dim=1)

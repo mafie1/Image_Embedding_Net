@@ -176,19 +176,6 @@ def make_video(folder):
 
     fig.show()
 
-
-    unique_val = np.unique(flat_mask)
-
-    # filter out background
-    #df_bg_free = df.query('label != 0.0')
-    # #print(df_bg_free.std())
-
-    # Plot selected dimensions
-
-
-
-    # fig = px.scatter(df, x="dim1", y="dim2", animation_frame="label")
-
     # fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
     # title = 'Instance Pixel Embeddings shown in selected dimensions',
     # width = 1200, height = 800)
