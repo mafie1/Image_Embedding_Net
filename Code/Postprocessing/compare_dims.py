@@ -10,10 +10,10 @@ from Code.model import UNet_small, UNet_spoco
 
 HEIGHT = 512
 OUT_CHANNELS = 16
-EPOCHS = 100
+EPOCHS = 400
 image, mask = load_image(HEIGHT, index = 3)
 
-rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-100-dim16-s512.pt'
+rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-400-dim16-s512.pt'
 model_path = os.path.expanduser(rel_model_path)
 
 loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
