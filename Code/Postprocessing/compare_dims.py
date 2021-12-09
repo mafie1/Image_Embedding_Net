@@ -9,11 +9,19 @@ from Code.model import UNet_small, UNet_spoco
 
 
 HEIGHT = 512
+<<<<<<< HEAD
 OUT_CHANNELS = 2
 EPOCHS =  1500
 image, mask = load_image(HEIGHT, index = 3)
 
 rel_model_path = '/video/video_small_2/epoch-994-dim2-s512.pt'
+=======
+OUT_CHANNELS = 16
+EPOCHS = 400
+image, mask = load_image(HEIGHT, index = 3)
+
+rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-400-dim16-s512.pt'
+>>>>>>> main
 model_path = os.path.expanduser(rel_model_path)
 
 loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)

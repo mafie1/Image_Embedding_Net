@@ -6,5 +6,10 @@ Code/__pycache__/
 .idea/
 
 Code/Postprocessing/__pycache__/
+<<<<<<< HEAD
 
 Code/Preprocessing/__pycache__/
+=======
+>>>>>>> main
+
+*.html
