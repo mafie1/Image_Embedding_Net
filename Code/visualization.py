@@ -7,12 +7,12 @@ import pandas as pd
 import torch
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Postprocessing.dim_reduction import pca
-from model import UNet_spoco, UNet_small
+from model import UNet_spoco, UNet_small, UNet_spoco_new
 
 
 def visualization_train(DIM_PCA = None):
     HEIGHT, WIDTH = 512, 512
-    OUT_CHANNELS = 16
+    OUT_CHANNELS = 32
 
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
@@ -33,10 +33,10 @@ def visualization_train(DIM_PCA = None):
     mask = mask_example
 
     """loading trained model"""
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-2000-dim16-s512.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim32-height512-epochs3000/epoch-20-dim32-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
-    loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
-    #loaded_model = UNet_spoco(in_channels=3, out_channels=OUT_CHANNELS)
+
+    loaded_model = UNet_spoco_new(in_channels=3, out_channels=OUT_CHANNELS)
     loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
 
@@ -65,7 +65,6 @@ def visualization_train(DIM_PCA = None):
         fig_pca = px.scatter_3d(pca_df, x='dim1', y='dim2', z='dim3', color='label', symbol='label', size='label')
 
 
-
     unique_val = np.unique(flat_mask)
 
     """Create DataFrame of fully dimensional embeddings"""
@@ -78,35 +77,19 @@ def visualization_train(DIM_PCA = None):
     # filter out background
     df_bg_free = df.query('label != 0.0')
 
-    print(df_bg_free.std())
-
     # Plot selected dimensions
+    df = df.sort_values(by=['label'])
     df['label'] = df['label'] + 1
 
-    """Create Animation"""
-    #px.scatter(df, x="dim1", y="dim2", animation_frame="Epoch", animation_group="country",
-     #          size="pop", color="continent", hover_name="country",
-      #         log_x=True, size_max=55, range_x=[100, 100000], range_y=[25, 90])
-    #fig = px.scatter_3d(df_bg_free, x = 'dim4', y = 'dim7', z = 'dim6', color = 'label', size = 'label', symbol = 'label')
 
     #fig = px.scatter(df, x = 'dim1', y = 'dim2', color = 'label', size = 'label', symbol = 'label')
 
-    #fig = px.scatter(df, x="dim1", y="dim2", animation_frame="label")
-
-
-    #fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
-                       # title = 'Instance Pixel Embeddings shown in selected dimensions',
-                        #width = 1200, height = 800)
-
-    fig = px.scatter(df, x='dim1', y='dim2', color='label', symbol='label', size = 'label',
+    fig = px.scatter(df, x='dim1', y='dim2', color=df["label"].astype(str), symbol='label', size = 'label',
                         title = 'Instance Pixel Embeddings shown in selected dimensions',
                         width = 1600, height = 800)
 
     fig.update_layout(legend_orientation="h")
-    #fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
-     #                                         ticks="outside"))
     fig.show()
-    #filtered_embedding = df_bg_free.drop('label', axis=1).to_numpy().reshape(-1, 16)
 
 
 def make_video(folder):
@@ -155,7 +138,7 @@ def make_video(folder):
         flat_embedding = embedding.detach().numpy().reshape((OUT_CHANNELS, -1))
 
         df_i = pd.DataFrame()
-        df_i["label"] = flat_mask[:]
+        df_i["label"] = (flat_mask[:])
         df_i['epoch'] = i
 
         for i in range(0, OUT_CHANNELS):
@@ -164,8 +147,10 @@ def make_video(folder):
         df = df.append(df_i)
 
 
-    #print(df.head(-5))
     df['label'] = df['label'] + 1
+
+
+    print(df.head(10))
 
     """Remove a random subset"""
     remove_n = int(512*512/10)
@@ -200,7 +185,7 @@ def make_video(folder):
 
 
 if __name__ == '__main__':
-    visualization_train(DIM_PCA=3)
+    visualization_train()
     #make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small_2/')
 
 
