@@ -8,11 +8,11 @@ big = 'yes'
 LEARNING_RATE = 0.001  # 1e-3 empfohlen
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-EPOCHS =  1
-HEIGHT = 200
+EPOCHS =  3000
+HEIGHT = 512
 WIDTH = HEIGHT
 IN_CHANNELS = 3
-OUT_CHANNELS = 2  # output dimensions of embedding space
+OUT_CHANNELS = 32  # output dimensions of embedding space
 
 DELTA_VAR = 0.5
 DELTA_D = 2.5
