@@ -6,17 +6,15 @@ import numpy as np
 import random
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Custom_Loss.pp_loss import DiscriminativeLoss
-from model import UNet_spoco, UNet_small
+from model import UNet_spoco, UNet_small, UNet_spoco_new
 from tqdm import tqdm
 from utils import plot_results_from_training
 import shutil
 from params import *
 
 def trainer():
-
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
     print('Training on images of size {}x{}'.format(HEIGHT, WIDTH), '\n')
-
 
     re_img_dir = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1'
     image_directory = os.path.expanduser(re_img_dir)
@@ -39,7 +37,7 @@ def trainer():
     """Choose right Model and create Directory for Run with Run Parameters"""
 
     if big is not None:
-        model = UNet_spoco(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
+        model = UNet_spoco_new(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
         model.train()
 
         rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/'

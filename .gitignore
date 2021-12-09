@@ -13,3 +13,5 @@ Code/Preprocessing/__pycache__/
 >>>>>>> main
 
 *.html
+
+Code/saved_models/full_UNet/run-dim2-height200-epochs1/
