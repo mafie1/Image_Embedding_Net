@@ -18,6 +18,21 @@ class ConvBlockBN(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
+class ConvBlockOut(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ConvBlockOut, self).__init__()
+
+        self.conv = nn.Sequential(
+            nn.BatchNorm2d(num_features = in_channels),
+            nn.Conv2d(in_channels, out_channels, kernel_size = 3, stride = 1, padding = 1, bias=False),
+            nn.ReLU(inplace=True),
+
+            nn.BatchNorm2d(num_features = out_channels),
+            nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = 1, padding = 1, bias=False),)
+
+    def forward(self, x):
+        return self.conv(x)
+
 class Down_Block(nn.Module):
     def init(self):
         super(Down_Block, self).__init__()
