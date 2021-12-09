@@ -88,7 +88,7 @@ def cluster_single_image(save = None, index = 3, n_min = 200, epsilon = 0.5, plo
     image = img_example.unsqueeze(0)
     mask = mask_example  # want semantic mask instead of mask
 
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/epoch-900-dim2-s512.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/epoch-1300-dim8-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
 
     loaded_model = UNet_small(in_channels=3, out_channels=2)

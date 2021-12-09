@@ -12,7 +12,7 @@ from model import UNet_spoco, UNet_small
 
 def visualization_train(DIM_PCA = None):
     HEIGHT, WIDTH = 512, 512
-    OUT_CHANNELS = 2
+    OUT_CHANNELS = 16
 
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
@@ -33,7 +33,7 @@ def visualization_train(DIM_PCA = None):
     mask = mask_example
 
     """loading trained model"""
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/epoch-700-dim2-s512.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-2000-dim16-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
     loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
     #loaded_model = UNet_spoco(in_channels=3, out_channels=OUT_CHANNELS)
@@ -47,7 +47,7 @@ def visualization_train(DIM_PCA = None):
     flat_mask = mask.reshape(-1)
 
     if DIM_PCA is not None:
-        pca_output = pca(embedding).squeeze(0).view(3, HEIGHT, WIDTH)
+        pca_output = pca(embedding.unsqueeze(0)).squeeze(0).view(DIM_PCA, HEIGHT, WIDTH)
         reduced_embedding = pca(embedding, output_dimensions=3).detach().numpy().reshape((DIM_PCA, -1))
 
         if DIM_PCA == 3:
@@ -113,6 +113,8 @@ def make_video(folder):
     HEIGHT, WIDTH = 512, 512
     OUT_CHANNELS = 2
 
+    number_pixel = 10000
+
     torch.manual_seed(0)
     random.seed(0)
 
@@ -134,7 +136,7 @@ def make_video(folder):
     """loading trained models"""
 
 
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/epoch-700-dim2-s512.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/epoch-994-dim2-s512.pt'
     model_path = os.path.expanduser(rel_model_path)
 
     contents = sorted(os.listdir(folder))
@@ -165,6 +167,11 @@ def make_video(folder):
     #print(df.head(-5))
     df['label'] = df['label'] + 1
 
+    """Remove a random subset"""
+    remove_n = int(512*512/10)
+    drop_indices = np.random.choice(df.index, remove_n, replace=False)
+    #df_subset = df.drop(drop_indices)
+    df = df.drop(drop_indices)
 
     fig = px.scatter(df, x="dim1", y="dim2", animation_frame="epoch", symbol='label', color='label',
                      width=1600, height=1000,
@@ -172,9 +179,11 @@ def make_video(folder):
                      range_x=[0, 20], range_y=[0, 20])
 
     fig.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 0
-    fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 5*(len(models)+1)
+    fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 3*(len(models))
+    fig.update_layout(legend_orientation="h")
 
-    fig.show()
+    #fig.show()
+    fig.write_html("animation2D.html")
 
     # fig = px.scatter_3d(df_bg_free, x='dim1', y='dim2', z='dim6', color='label', symbol='label', size = 'label',
     # title = 'Instance Pixel Embeddings shown in selected dimensions',
@@ -184,14 +193,14 @@ def make_video(folder):
                      #title='Instance Pixel Embeddings shown in selected dimensions',
                      #width=1600, height=800)
 
-    #fig.update_layout(legend_orientation="h")
+
     # fig.update_layout(coloraxis_colorbar=dict(yanchor="top", y=0, x=1.1,
     #                                         ticks="outside"))
     # filtered_embedding = df_bg_free.drop('label', axis=1).to_numpy().reshape(-1, 16)
 
 
 if __name__ == '__main__':
-    #visualization_train()
-    make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small/')
+    visualization_train(DIM_PCA=3)
+    #make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small_2/')
 
 

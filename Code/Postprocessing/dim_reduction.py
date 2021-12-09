@@ -11,6 +11,7 @@ from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, mask_train_transform, image_train_transform
+from model import UNet_small
 
 
 def TSNE_with_scaling(embedding, mask):
@@ -190,11 +191,15 @@ def pca(embedding, output_dimensions=3, reference=None, center_data=False, retur
 
 
 def test():
-    loaded_model = torch.load(
-        '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/time_evolution/epoch-1000.pt')
+
+    E_DIM = 8
+    model_path = '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim8-height512-epochs2000/epoch-2000-dim8-s512.pt'
+    loaded_model = UNet_small(in_channels=3, out_channels=E_DIM)
+    loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
 
-    HEIGHT, WIDTH = 100, 100
+
+    HEIGHT, WIDTH = 200,200
     PCA_dim = 3
 
     directory = '/Users/luisaneubauer/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
@@ -204,22 +209,37 @@ def test():
                                    image_transform=image_train_transform(HEIGHT, WIDTH),
                                    mask_transform=mask_train_transform(HEIGHT, WIDTH))
 
-    img_example, mask_example = Plants.__getitem__(2)
+    img_example, mask_example = Plants.__getitem__(0)
 
     image = img_example.unsqueeze(0)
     mask = mask_example
+    print(mask.shape)
+    flat_mask = mask.view(HEIGHT*WIDTH)
+
     embedding = loaded_model(image)
 
     print(pca(embedding).shape)
 
-    pca_output = pca(embedding, output_dimensions=PCA_dim).squeeze(0).view(PCA_dim,HEIGHT,WIDTH)
+    pca_output = pca(embedding, output_dimensions=PCA_dim).squeeze(0).view(PCA_dim, HEIGHT*WIDTH)
 
-    flat_embedding = embedding.reshape((16, -1))
+    flat_embedding = embedding.reshape((E_DIM, -1))
 
     #np.savetxt('embedding_{}_{}.csv'.format(PCA_dim, HEIGHT), flat_embedding.detach().numpy(), delimiter=",")
-    print(flat_embedding.shape)
-    plt.imshow(pca_output.squeeze().permute(1,2,0))
-    plt.show()
+    #remove_n = int(512 * 512 / 10)
+
+    #drop_indices = np.random.choice(len(flat_mask), remove_n, replace=False)
+    # df_subset = df.drop(drop_indices)
+    #flat_mask = np.delete(flat_mask, drop_indices)#df.drop(drop_indices)
+    #print(flat_mask.shape)
+    #pca_output = np.delete(pca_output[:], drop_indices)
+
+
+    fig = px.scatter_3d(x = pca_output[0,:], y = pca_output[1,:], z = pca_output[2,:], color=flat_mask, size = flat_mask+1, symbol=flat_mask)
+    fig.show()
+
+    pca_output = pca_output.view(PCA_dim, HEIGHT, WIDTH)
+    #plt.imshow(pca_output.squeeze().permute(1,2,0))
+    #plt.show()
 
 
 

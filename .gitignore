@@ -4,3 +4,7 @@
 Code/__pycache__/
 
 .idea/
+
+Code/Postprocessing/__pycache__/
+
+Code/Preprocessing/__pycache__/

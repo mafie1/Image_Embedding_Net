@@ -9,11 +9,11 @@ from Code.model import UNet_small, UNet_spoco
 
 
 HEIGHT = 512
-OUT_CHANNELS = 16
-EPOCHS = 100
+OUT_CHANNELS = 2
+EPOCHS =  1500
 image, mask = load_image(HEIGHT, index = 3)
 
-rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-100-dim16-s512.pt'
+rel_model_path = '/video/video_small_2/epoch-994-dim2-s512.pt'
 model_path = os.path.expanduser(rel_model_path)
 
 loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
@@ -52,6 +52,9 @@ def scatter_plot():
     fig.update_layout(legend_orientation="h")
 
 
+
+
+plt.figure(figsize=(12,6))
 plt.bar(np.linspace(0, OUT_CHANNELS-1, OUT_CHANNELS), sorted(np.array(df_bg_free.std()[1:]), reverse=True), label = 'Background Component', alpha = 0.5)
 plt.bar(np.linspace(0, OUT_CHANNELS-1, OUT_CHANNELS), sorted(np.array(df.std()[1:]), reverse=True),
         label = 'Instance Component', alpha = 0.5,
@@ -61,11 +64,12 @@ plt.bar(np.linspace(0, OUT_CHANNELS-1, OUT_CHANNELS), sorted(np.array(df.std()[1
 
 plt.xticks(list(np.linspace(0, OUT_CHANNELS-1, OUT_CHANNELS)))
 plt.ylabel('Variance per Dimension', size = 'large')
-plt.xlabel('Dimensions sorted by Variance', size = 'large')
-plt.title('Variance (Spread) Distribution of {} E-Dimensions and {} Training Epochs'.format(OUT_CHANNELS, EPOCHS), size = 'large')
+plt.xlabel('Dimensions Sorted by Variance', size = 'large')
+#plt.yscale('log')
+plt.title('Variance Distribution of {} E-Dimensions'.format(OUT_CHANNELS), size = 'x-large')
 plt.legend()
 
-
+plt.savefig('Variance Distribution of {} E-Dimensions.png'.format(OUT_CHANNELS), dpi=200)
 print(np.array(df_bg_free.std())[1:])
 plt.show()
 #fig = px.bar(df, x='dim1', y='label')
