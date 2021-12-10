@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def broadcast(src: torch.Tensor, other: torch.Tensor, dim: int):
+    src.to(DEVICE)
+    other.to(DEVICE)
     if dim < 0:
         dim = other.dim() + dim
     if src.dim() == 1:
@@ -20,6 +22,8 @@ def broadcast(src: torch.Tensor, other: torch.Tensor, dim: int):
 def scatter_add(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
                 out: Optional[torch.Tensor] = None,
                 dim_size: Optional[int] = None) -> torch.Tensor:
+    src.to(DEVICE)
+    index.to(DEVICE)
     return scatter_sum(src, index, dim, out, dim_size)
 
 
@@ -29,7 +33,7 @@ def scatter_sum(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
     index = broadcast(index, src, dim)
     src.to(DEVICE)
     index.to(DEVICE)
-    
+
     if out is None:
         size = list(src.size())
         if dim_size is not None:
