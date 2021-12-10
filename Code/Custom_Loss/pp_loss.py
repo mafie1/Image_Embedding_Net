@@ -8,7 +8,7 @@ from Custom_Loss.distance_term import compute_distance_term
 
 from model import UNet_spoco
 
-
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def push_pull_loss(batch_embedding, batch_target, alpha=1, beta=1, gamma=0.001, delta_var = 0.5, delta_d = 2.5):
     """
