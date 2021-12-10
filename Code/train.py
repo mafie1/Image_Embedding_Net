@@ -1,4 +1,6 @@
 import torch
+import warnings
+warnings.simplefilter("ignore", UserWarning)
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import os
@@ -16,13 +18,13 @@ def trainer():
 
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print('Working on: ', DEVICE)
+    print('Working on: ', DEVICE, '\n')
 
     print('Training on images of size {}x{}'.format(HEIGHT, WIDTH), '\n')
 
     re_img_dir = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1'
     image_directory = os.path.expanduser(re_img_dir)
-    print('Image Directory is set to:', image_directory, '\n')
+    #print('Image Directory is set to:', image_directory, '\n')
 
     Plants = CustomDatasetMultiple(image_directory,
                                    transform=None,
