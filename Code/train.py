@@ -95,7 +95,7 @@ def trainer():
             images, targets = images.to(DEVICE), targets.to(DEVICE)
 
             #Predict
-            preds = model(images).to(DEVICE)
+            preds = model(images.to(DEVICE))
             loss = loss_function(preds, targets)
 
             #Train

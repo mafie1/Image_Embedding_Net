@@ -36,7 +36,7 @@ def compute_cluster_variances(cluster_means, embedding, target, instance_counts,
                              min=0)  # eliminate all distances less than delta_var (=within the cluster)
     hinge_dist = hinge_dist ** 2
 
-    variance = torch.sum(hinge_dist / instance_sizes_spatial) / C
+    variance = torch.sum(hinge_dist.to(DEVICE) / instance_sizes_spatial.to(DEVICE)) / C
 
     return variance
 
