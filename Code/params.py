@@ -12,7 +12,7 @@ EPOCHS =  3000
 HEIGHT = 512
 WIDTH = HEIGHT
 IN_CHANNELS = 3
-OUT_CHANNELS = 16  # output dimensions of embedding space
+OUT_CHANNELS = 2  # output dimensions of embedding space
 
 DELTA_VAR = 0.5
 DELTA_D = 2.5
