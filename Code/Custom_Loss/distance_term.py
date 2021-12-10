@@ -1,6 +1,7 @@
 from Custom_Loss.cluster_means import compute_cluster_means
 import torch
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def compute_distance_term(embedding, target, delta_d = 2.5, ignore_zero_label = False):
     """
@@ -28,7 +29,7 @@ def compute_distance_term(embedding, target, delta_d = 2.5, ignore_zero_label = 
 
 
     # zero out distances greater than 2*delta_dist (hinge)
-    hinged_dist = torch.clamp(repulsion_dist - dist_matrix, min = 0)**2
+    hinged_dist = torch.clamp(repulsion_dist.to(DEVICE) - dist_matrix.to(DEVICE), min = 0)**2
 
     # sum all of the hinged pair-wise distances
     dist_sum = torch.sum(hinged_dist)
