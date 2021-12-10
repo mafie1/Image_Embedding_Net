@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 import matplotlib.pyplot as plt
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def broadcast(src: torch.Tensor, other: torch.Tensor, dim: int):
     if dim < 0:
@@ -26,7 +27,9 @@ def scatter_sum(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
                 out: Optional[torch.Tensor] = None,
                 dim_size: Optional[int] = None) -> torch.Tensor:
     index = broadcast(index, src, dim)
-
+    src.to(DEVICE)
+    index.to(DEVICE)
+    
     if out is None:
         size = list(src.size())
         if dim_size is not None:

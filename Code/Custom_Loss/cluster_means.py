@@ -2,6 +2,8 @@ from utils import scatter_mean
 import torch
 import numpy as np
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 def compute_cluster_means(embeddings, target, n_instances):
     """
     Computes mean embeddings per instance.
@@ -14,8 +16,8 @@ def compute_cluster_means(embeddings, target, n_instances):
     target = target.type(torch.LongTensor)
     assert target.dtype == torch.int64, 'Target Mask does not have the right dtype; it should be torch.int64'
 
-    embeddings = embeddings.flatten(1)  # 16-dim embedding [batch_size, 16, HEIGHT, WIDTH]
-    target = target.flatten()
+    embeddings = embeddings.flatten(1).to(DEVICE)  # 16-dim embedding [batch_size, 16, HEIGHT, WIDTH]
+    target = target.flatten().to(DEVICE)
 
     mean_embeddings = scatter_mean(embeddings, target, dim_size = n_instances)
     return mean_embeddings.transpose(1, 0)
