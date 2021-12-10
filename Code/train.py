@@ -15,8 +15,8 @@ from params import *
 def trainer():
 
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
-    DEVICE = 'cuda' # if torch.cuda.is_available() else 'cpu'
-    print(DEVICE)
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print('Working on: ', DEVICE)
 
     print('Training on images of size {}x{}'.format(HEIGHT, WIDTH), '\n')
 
@@ -27,8 +27,7 @@ def trainer():
     Plants = CustomDatasetMultiple(image_directory,
                                    transform=None,
                                    image_transform=image_train_transform(HEIGHT, WIDTH),
-                                   mask_transform= mask_train_transform(HEIGHT, WIDTH)
-                                   )
+                                   mask_transform= mask_train_transform(HEIGHT, WIDTH))
 
     torch.manual_seed(0)
     random.seed(0)
