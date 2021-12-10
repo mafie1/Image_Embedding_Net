@@ -4,8 +4,6 @@ import random
 import os
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 
-
-
 def create_masks_for_instance_N(mask, N):
     flat_mask = mask.reshape(-1)
     C = len(np.unique(flat_mask))
@@ -18,7 +16,7 @@ def create_masks_for_instance_N(mask, N):
     return example_mask_N
 
 
-def load_image(height, index):
+def load_val_image(height, index):
     HEIGHT = height
     WIDTH = height
 

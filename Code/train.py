@@ -13,7 +13,10 @@ import shutil
 from params import *
 
 def trainer():
+
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
+    DEVICE = 'cuda' if torch.cuda.is_available()
+
     print('Training on images of size {}x{}'.format(HEIGHT, WIDTH), '\n')
 
     re_img_dir = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1'
@@ -37,7 +40,7 @@ def trainer():
     """Choose right Model and create Directory for Run with Run Parameters"""
 
     if big is not None:
-        model = UNet_spoco_new(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
+        model = UNet_spoco_new(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS).to(DEVICE)
         model.train()
 
         rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/'
@@ -54,7 +57,7 @@ def trainer():
         print('The Model will be saved in:', model_dir)
 
     else:
-        model = UNet_small(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS)
+        model = UNet_small(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS).to(DEVICE)
         model.train()
 
         rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/'

@@ -15,3 +15,7 @@ Code/Preprocessing/__pycache__/
 *.html
 
 Code/saved_models/full_UNet/run-dim2-height200-epochs1/
+
+Code/Dataset_Analytics/images_statistics/leave_count_histogram.png
+
+Code/Dataset_Analytics/images_statistics/ratio_histogram.png

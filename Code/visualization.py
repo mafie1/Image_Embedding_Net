@@ -8,32 +8,22 @@ import torch
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
 from Postprocessing.dim_reduction import pca
 from model import UNet_spoco, UNet_small, UNet_spoco_new
+from utils_post import load_val_image
 
 
 def visualization_train(DIM_PCA = None):
     HEIGHT, WIDTH = 512, 512
     OUT_CHANNELS = 32
-
+    Epochs = 600
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
 
-    torch.manual_seed(0)
-    random.seed(0)
 
-    Plants = CustomDatasetMultiple(dir=directory,
-                                   transform=None,
-                                   image_transform=image_train_transform(HEIGHT, WIDTH),
-                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
-
-    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
-
-    img_example, mask_example = train_set.__getitem__(0)
-    image = img_example.unsqueeze(0)
-    mask = mask_example
+    image, mask = load_val_image(height=HEIGHT, index=1)
 
     """loading trained model"""
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim32-height512-epochs3000/epoch-20-dim32-s512.pt'
+    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim32-height512-epochs3000/epoch-{}-dim32-s512.pt'.format(Epochs)
     model_path = os.path.expanduser(rel_model_path)
 
     loaded_model = UNet_spoco_new(in_channels=3, out_channels=OUT_CHANNELS)
@@ -47,22 +37,28 @@ def visualization_train(DIM_PCA = None):
     flat_mask = mask.reshape(-1)
 
     if DIM_PCA is not None:
-        pca_output = pca(embedding.unsqueeze(0)).squeeze(0).view(DIM_PCA, HEIGHT, WIDTH)
-        reduced_embedding = pca(embedding, output_dimensions=3).detach().numpy().reshape((DIM_PCA, -1))
+        pca_output = pca(embedding.unsqueeze(0), output_dimensions=3).squeeze(0).view(DIM_PCA, HEIGHT, WIDTH)
+
+        reduced_embedding = pca(embedding.unsqueeze(0), output_dimensions=3).squeeze(0).detach().numpy().reshape((DIM_PCA, -1))
+
 
         if DIM_PCA == 3:
             plt.imshow(pca_output.permute(1, 2, 0), cmap='Accent')
+            plt.xticks(([]))
+            plt.yticks(([]))
             plt.show()
 
         """Create DataFrame of reduced embedding (via PCA)"""
         pca_df = pd.DataFrame()
         pca_df['label'] = flat_mask[:]
+
         for i in range(0, DIM_PCA):
             pca_df['dim{}'.format(i + 1)] = reduced_embedding[i][:]
 
         pca_df['label'] = pca_df['label'] + 1
 
         fig_pca = px.scatter_3d(pca_df, x='dim1', y='dim2', z='dim3', color='label', symbol='label', size='label')
+        fig_pca.show()
 
 
     unique_val = np.unique(flat_mask)
@@ -84,7 +80,7 @@ def visualization_train(DIM_PCA = None):
 
     #fig = px.scatter(df, x = 'dim1', y = 'dim2', color = 'label', size = 'label', symbol = 'label')
 
-    fig = px.scatter(df, x='dim1', y='dim2', color=df["label"].astype(str), symbol='label', size = 'label',
+    fig = px.scatter(df, x='dim1', y='dim2', color=df["label"].astype(str), symbol='label',
                         title = 'Instance Pixel Embeddings shown in selected dimensions',
                         width = 1600, height = 800)
 
@@ -185,7 +181,7 @@ def make_video(folder):
 
 
 if __name__ == '__main__':
-    visualization_train()
+    visualization_train(DIM_PCA=3)
     #make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small_2/')
 
 
