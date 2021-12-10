@@ -116,7 +116,9 @@ def trainer():
         with torch.no_grad():
             running_validation_loss = 0
             for images, targets in validation_loader:
-                predictions = model(images)
+                images.to(DEVICE)
+                targets.to(DEVICE)
+                predictions = model(images).to(DEVICE)
                 validation_loss = loss_function(predictions, targets)
                 running_validation_loss += validation_loss
 
