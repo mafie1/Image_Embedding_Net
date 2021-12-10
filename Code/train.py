@@ -124,7 +124,7 @@ def trainer():
                 validation_loss = loss_function(predictions, targets)
                 running_validation_loss += validation_loss
 
-        validation_loss_statistic = np.append(validation_loss_statistic, running_validation_loss)
+        validation_loss_statistic = np.append(validation_loss_statistic.cpu(), running_validation_loss.cpu())
 
     print('Training Done')
     np.savetxt(model_dir+"/training_loss.csv", [np.linspace(1, EPOCHS, EPOCHS) ,loss_statistic/len(test_set), validation_loss_statistic/len(val_set)], delimiter=",")
