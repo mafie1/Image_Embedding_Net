@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from Custom_Loss.cluster_means import compute_cluster_means
 
 # here begins the actual variances part
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def compute_cluster_variances(cluster_means, embedding, target, instance_counts, delta_var = 0.5, ignore_zero_label = False):
     """
@@ -15,6 +16,10 @@ def compute_cluster_variances(cluster_means, embedding, target, instance_counts,
     :param ignore_zero: ignore the background when calculating the loss, default = True
     :return: tensor(vector) with variance per instance
     """
+    cluster_means.to(DEVICE)
+    embedding.to(DEVICE)
+    target.to(DEVICE)
+    instance_counts.to(DEVICE)
     assert target.dim() == 2
     C = cluster_means.shape[0]  # number of instances C = 2 in example
 
