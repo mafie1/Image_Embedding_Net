@@ -7,6 +7,9 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torchvision.transforms as T
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+
 #from torchvision.transforms import InterpolationMode
 #import cv2
 
