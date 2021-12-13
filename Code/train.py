@@ -18,6 +18,8 @@ def trainer():
 
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    print('\n Starting Training')
     print('Working on: ', DEVICE, '\n')
 
     print('Training on images of size {}x{}'.format(HEIGHT, WIDTH), '\n')
