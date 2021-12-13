@@ -13,21 +13,19 @@ from utils_post import load_val_image
 
 def visualization_train(DIM_PCA = None):
     HEIGHT, WIDTH = 512, 512
-    OUT_CHANNELS = 32
-    Epochs = 600
+    OUT_CHANNELS = 2
+    Epochs = 3000
 
     rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
     directory = os.path.expanduser(rel_path)
 
-
-    image, mask = load_val_image(height=HEIGHT, index=1)
+    image, mask = load_val_image(height=HEIGHT, index=0)
 
     """loading trained model"""
-    rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim32-height512-epochs3000/epoch-{}-dim32-s512.pt'.format(Epochs)
-    model_path = os.path.expanduser(rel_model_path)
 
+    model_path = '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim{}-height512-epochs3000/epoch-{}-dim{}-s512.pt'.format(OUT_CHANNELS, Epochs, OUT_CHANNELS)
     loaded_model = UNet_spoco_new(in_channels=3, out_channels=OUT_CHANNELS)
-    loaded_model.load_state_dict(torch.load(model_path))
+    loaded_model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     loaded_model.eval()
 
     """Forward pass to get embeddings"""
@@ -60,8 +58,6 @@ def visualization_train(DIM_PCA = None):
         fig_pca = px.scatter_3d(pca_df, x='dim1', y='dim2', z='dim3', color='label', symbol='label', size='label')
         fig_pca.show()
 
-
-    unique_val = np.unique(flat_mask)
 
     """Create DataFrame of fully dimensional embeddings"""
     df = pd.DataFrame()
@@ -181,7 +177,7 @@ def make_video(folder):
 
 
 if __name__ == '__main__':
-    visualization_train(DIM_PCA=3)
+    visualization_train(DIM_PCA=None)
     #make_video('/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/video/video_small_2/')
 
 

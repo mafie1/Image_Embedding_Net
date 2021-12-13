@@ -4,27 +4,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
 import pandas as pd
-from utils_post import load_image
-from Code.model import UNet_small, UNet_spoco
+from utils_post import load_val_image
+from Code.model import UNet_small, UNet_spoco, UNet_spoco_new
 
 
 HEIGHT = 512
-<<<<<<< HEAD
-OUT_CHANNELS = 2
-EPOCHS =  1500
-image, mask = load_image(HEIGHT, index = 3)
-
-rel_model_path = '/video/video_small_2/epoch-994-dim2-s512.pt'
-=======
 OUT_CHANNELS = 16
-EPOCHS = 400
-image, mask = load_image(HEIGHT, index = 3)
+EPOCHS =  1500
+image, mask = load_val_image(HEIGHT, index = 3)
 
-rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim16-height512-epochs2000/epoch-400-dim16-s512.pt'
->>>>>>> main
+rel_model_path = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim{}-height512-epochs3000/epoch-{}-dim{}-s512.pt'.format(OUT_CHANNELS, EPOCHS, OUT_CHANNELS)
+
 model_path = os.path.expanduser(rel_model_path)
 
-loaded_model = UNet_small(in_channels=3, out_channels=OUT_CHANNELS)
+loaded_model = UNet_spoco_new(in_channels=3, out_channels=OUT_CHANNELS)
 loaded_model.load_state_dict(torch.load(model_path))
 loaded_model.eval()
 
@@ -58,7 +51,6 @@ def scatter_plot():
                         width = 1600, height = 800)
 
     fig.update_layout(legend_orientation="h")
-
 
 
 

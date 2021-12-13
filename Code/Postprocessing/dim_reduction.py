@@ -11,7 +11,7 @@ from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, mask_train_transform, image_train_transform
-from model import UNet_small
+from model import UNet_small, UNet_spoco_new
 
 
 def TSNE_with_scaling(embedding, mask):
@@ -189,37 +189,29 @@ def pca(embedding, output_dimensions=3, reference=None, center_data=False, retur
 
 
 
-
 def test():
-
+    from utils import load_image_mask
     E_DIM = 8
-    model_path = '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/run-dim8-height512-epochs2000/epoch-2000-dim8-s512.pt'
-    loaded_model = UNet_small(in_channels=3, out_channels=E_DIM)
+    HEIGHT, WIDTH = 512, 512
+    PCA_dim = 3
+    EPOCH = 2000
+
+    model_path = '/Users/luisaneubauer/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/run-dim{}-height512-epochs3000/epoch-{}-dim{}-s512.pt'.format(E_DIM, EPOCH, E_DIM)
+    loaded_model = UNet_spoco_new(in_channels=3, out_channels=E_DIM)
     loaded_model.load_state_dict(torch.load(model_path))
     loaded_model.eval()
 
 
-    HEIGHT, WIDTH = 200,200
-    PCA_dim = 3
-
     directory = '/Users/luisaneubauer/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
 
-    Plants = CustomDatasetMultiple(dir=directory,
-                                   transform=None,
-                                   image_transform=image_train_transform(HEIGHT, WIDTH),
-                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
+    img_example, mask_example = load_image_mask(height=HEIGHT, index = 8, mode='train')
 
-    img_example, mask_example = Plants.__getitem__(0)
-
-    image = img_example.unsqueeze(0)
+    image = img_example #.unsqueeze(0)
     mask = mask_example
-    print(mask.shape)
     flat_mask = mask.view(HEIGHT*WIDTH)
 
     embedding = loaded_model(image)
-
-    print(pca(embedding).shape)
-
+    print(embedding.shape)
     pca_output = pca(embedding, output_dimensions=PCA_dim).squeeze(0).view(PCA_dim, HEIGHT*WIDTH)
 
     flat_embedding = embedding.reshape((E_DIM, -1))
@@ -234,12 +226,30 @@ def test():
     #pca_output = np.delete(pca_output[:], drop_indices)
 
 
-    fig = px.scatter_3d(x = pca_output[0,:], y = pca_output[1,:], z = pca_output[2,:], color=flat_mask, size = flat_mask+1, symbol=flat_mask)
-    fig.show()
+    #fig = px.scatter_3d(x = pca_output[0,:], y = pca_output[1,:], z = pca_output[2,:], color=flat_mask, size = flat_mask+1, symbol=flat_mask)
+    #fig.show()
+    normal_output = embedding.squeeze()[0].detach().numpy() #.permute(1,2,0).detach().numpy()
+    print(normal_output.shape)
+    plt.yticks([])
+    plt.xticks([])
+    plt.imshow(normal_output, cmap = 'gray')
+    plt.savefig('First_DIM.png', dpi=200)
+    plt.show()
+
 
     pca_output = pca_output.view(PCA_dim, HEIGHT, WIDTH)
-    #plt.imshow(pca_output.squeeze().permute(1,2,0))
-    #plt.show()
+    print(pca_output.shape)
+    plt.yticks([])
+    plt.xticks([])
+
+    if pca_output.shape[0] > 1:
+        plt.imshow(pca_output.squeeze().permute(1,2,0), cmap='gray') #.permute(1, 2, 0))
+
+    else:
+        plt.imshow(pca_output.squeeze(), cmap='gray')
+
+    plt.savefig('PCA{}_to{}.png'.format(E_DIM, PCA_dim), dpi = 200)
+    plt.show()
 
 
 

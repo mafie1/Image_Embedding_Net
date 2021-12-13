@@ -2,6 +2,9 @@ import torch
 from typing import Optional
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+from Preprocessing.dataset_plants_multiple import CustomDatasetMultiple, image_train_transform, mask_train_transform
+import random
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -71,6 +74,32 @@ def scatter_mean(src: torch.Tensor, index: torch.Tensor, dim: int = -1,
         out.floor_divide_(count)
     return out
 
+
+def load_image_mask(height = 512, index = 0, mode = 'val'):
+    HEIGHT, WIDTH = height, height
+
+    rel_path = '~/Documents/BA_Thesis/CVPPP2017_instances/training/A1/'
+    directory = os.path.expanduser(rel_path)
+
+    Plants = CustomDatasetMultiple(dir=directory,
+                                   transform=None,
+                                   image_transform=image_train_transform(HEIGHT, WIDTH),
+                                   mask_transform=mask_train_transform(HEIGHT, WIDTH))
+
+    torch.manual_seed(0)
+    random.seed(0)
+    train_set, val_set, test_set = torch.utils.data.random_split(Plants, [80, 28, 20])
+
+    if mode == 'test':
+        img_example, mask_example = test_set.__getitem__(index)
+    if mode == 'train':
+        img_example, mask_example = train_set.__getitem__(index)
+    else:
+        img_example, mask_example = val_set.__getitem__(index)
+
+    image = img_example.unsqueeze(0)
+    mask = mask_example  # want semantic mask instead of mask
+    return image, mask
 
 def save_embedding(embedding, output_path):
 

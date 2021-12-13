@@ -19,3 +19,13 @@ Code/saved_models/full_UNet/run-dim2-height200-epochs1/
 Code/Dataset_Analytics/images_statistics/leave_count_histogram.png
 
 Code/Dataset_Analytics/images_statistics/ratio_histogram.png
+
+Code/Postprocessing/First_DIM.png
+
+Code/Postprocessing/PCA8_to1.png
+
+Code/Postprocessing/PCA8_to3.png
+
+Code/Postprocessing/PCA16_to3.png
+
+Code/Postprocessing/Variance Distribution of 16 E-Dimensions.png
