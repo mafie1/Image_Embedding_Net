@@ -31,8 +31,6 @@ class UNet_spoco_new(nn.Module):
 
 
     def forward(self, image):
-
-
         x1 = self.down_1(image)
         x2 = self.max_pool_2d(x1)
 

@@ -18,6 +18,8 @@ def trainer():
 
     #os.path.abspath(os.path.join(file, '../../helper_data/fmh_title_numeric_mapping.json')
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #torch.cuda.empty_cache()
+    #torch.cuda.memory_summary(device=None, abbreviated=False)
 
     print('\n Starting Training')
     print('Working on: ', DEVICE, '\n')
@@ -50,7 +52,7 @@ def trainer():
         rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/full_UNet/'
         model_dir = os.path.expanduser(rel_model_dir)
 
-        created_model_dir = model_dir + 'run-dim{}-height{}-epochs{}'.format(OUT_CHANNELS, HEIGHT, EPOCHS)
+        created_model_dir = model_dir + 'run-dim{}-height{}-epochs{}-var{}-dist{}'.format(OUT_CHANNELS, HEIGHT, EPOCHS, DELTA_VAR, DELTA_D)
 
         if (os.path.exists(created_model_dir)):
             print('Directory already exists and will be overwritten \n')
@@ -67,7 +69,7 @@ def trainer():
         rel_model_dir = '~/Documents/BA_Thesis/Image_Embedding_Net/Code/saved_models/small_UNet/'
         model_dir = os.path.expanduser(rel_model_dir)
 
-        created_model_dir = model_dir + 'run-dim{}-height{}-epochs{}'.format(OUT_CHANNELS, HEIGHT, EPOCHS)
+        created_model_dir = model_dir + 'run-dim{}-height{}-epochs{}-var{}-dist{}'.format(OUT_CHANNELS, HEIGHT, EPOCHS, DELTA_VAR, DELTA_D)
 
         if (os.path.exists(created_model_dir)):
             print('Directory already exists and will be overwritten \n')
